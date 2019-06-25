@@ -5,50 +5,56 @@ sys.path.insert(0, '/Users/zacespinosa/Foundry/qnetdes')
 from qnetdes import *
 from pyquil import Program
 from pyquil.gates import *
-from pyquil.api import WavefunctionSimulator
+from pyquil.api import WavefunctionSimulator, QVMConnection
 
-# wf_sim = WavefunctionSimulator()
-# def getWaveFunction(p): 
-#     waveFunction = wf_sim.wavefunction(p)
-#     probs = waveFunction.get_outcome_probs()
-#     print(probs)
-    
 class Alice(Agent): 
-    def teleport(self, phi, a): 
+    def run(self): 
+        # Define Alice's qubits
+        a, phi = self.qubits
+        p = self.program
         # Entangle Ancilla and Phi
-        self.program += CNOT(phi, a)
-        self.program += H(phi)
+        p += CNOT(phi, a)
+        p += H(phi)
 
         # Measure Ancilla and Phi
-        phi_measured = MEASURE(phi, ro[0])
-        a_measured = MEASURE(a, ro[1])
+        p += MEASURE(phi, ro[0])
+        p += MEASURE(a, ro[1])
     
         # Send Cbits
-        bits = [phi_measured, a_measured]
+        bits = [0,1]
         self.csend('bob', bits)
-
-    def run(self): 
-        # Define Alice's Qubits
-        a = self.qubits[0]
-        phi = self.qubits[1]
-        self.teleport(phi,a)        
-
 
 class Bob(Agent): 
     def run(self):
         b = self.qubits[0]
-        phi_measured, a_measured = self.crecv('alice')
-        if phi_measured: self.program += Z(b)
-        if a_measured: self.program += X(b)
-        
-        b_measured =  MEASURE(b, ro[2]) 
-        print(b_measured)
+        self.crecv('alice')
 
-p = Program(H(0), CNOT(0,1), H(2))
+        p = self.program
+        p.if_then(ro[1], X(b))
+        p.if_then(ro[0], Z(b))
+
+        qvm = QVMConnection()
+        result = qvm.run(p)
+
+# Create Phi
+p = Program(H(2)) 
+# Entangle qubits 0 and 1. 
+p += Program(H(0))
+p += CNOT(0,1) 
+
+# Create Classical Memory
 ro = p.declare('ro', 'BIT', 3)
+
+# Create Alice and Bob. Give Alice qubit 0 (ancilla) and qubit 2 (phi). Give Bob qubit 1
 alice = Alice(p, [0, 2], 'alice')
 bob = Bob(p, [1], 'bob')
 
-QConnect(alice, bob, [None])
+# Connect Alice and Bob via a quantum connection and classical connection with no transit devices
+QConnect(alice, bob, transit_devices=[None])
 CConnect(alice, bob)
-Simulation(alice, bob, p).run()
+
+# Run simulation
+Simulation(alice, bob).run()
+
+# wf_sim = WavefunctionSimulator()
+# waveFunction = wf_sim.wavefunction(p)
