@@ -1,13 +1,14 @@
 # Remove in future: currently allows us to import qnetdes
 import sys
 sys.path.insert(0, '/Users/zacespinosa/Foundry/qnetdes')
+sys.path.insert(1, '/Users/matthewradzihovsky/documents/qnetdes')
 
 from qnetdes import *
 from pyquil import Program
 from pyquil.gates import *
 from pyquil.api import WavefunctionSimulator, QVMConnection
 
-def waveFunction(p):
+def printWF(p):
     wf_sim = WavefunctionSimulator()
     waveFunction = wf_sim.wavefunction(p)
     print(waveFunction)
@@ -38,13 +39,13 @@ class Bob(Agent):
         p.if_then(ro[1], X(b))
         p.if_then(ro[0], Z(b))
 
-        waveFunction(p)
+        printWF(p)
         qvm = QVMConnection()
         result = qvm.run(p)
 
 # Create Phi
 p = Program(H(2))
-waveFunction(p)
+printWF(p)
 # Entangle qubits 0 and 1. 
 p += Program(H(0))
 p += CNOT(0,1) 
@@ -62,6 +63,3 @@ CConnect(alice, bob)
 
 # Run simulation
 Simulation(alice, bob).run()
-
-# wf_sim = WavefunctionSimulator()
-# waveFunction = wf_sim.wavefunction(p)
