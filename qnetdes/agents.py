@@ -52,6 +52,13 @@ class Agent(threading.Thread):
 
         return self._tracer
 
+    #add devices
+    def add_target_devices(self, new_target_devices):
+        self.target_devices.extend(new_target_devices)
+
+    def add_source_devices(self, new_source_devices):
+        self.source_devices.extend(new_source_devices)
+
     @property
     def cmem(self): 
         return self.__cmem
@@ -112,7 +119,8 @@ class Agent(threading.Thread):
         # Removing qubits being sent
         self.qubits = list(set(self.qubits) - set(qubits))
         connection = self.qconnections[target]
-        connection.put(self.name, target, qubits)
+        source_delay = connection.put(self.name, target, qubits)
+        self.time += source_delay
 
     def qrecv(self, source):
         '''

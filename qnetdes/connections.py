@@ -1,9 +1,15 @@
 import multiprocessing
+import itertools
 
 __all__ = ["QConnect", "CConnect"]
 
+pulse_length_default = 10 * 10 ** -12 # 10 ps photon pulse length
+fiber_length_default = 1
+signal_speed = 2.998 * 10 ** 5 #speed of light in km/s
+
+
 class QConnect(): 
-    def __init__(self, agent_one, agent_two, transit_devices):
+    def __init__(self, agent_one, agent_two, transit_devices=[]):
         '''
             Get devices from source node (e.g. laser, intensity modulator, etc...), 
             target node (e.g. sensor, beam splitter), and transit devices (e.g. fiber optics, free space)
@@ -16,13 +22,13 @@ class QConnect():
         agent_two_name = agent_two.name
         
         self.source_devices = {
-            agent_one_name: agent_one.source_devices if hasattr(agent_one, 'source_devices') else None,
-            agent_two_name: agent_two.source_devices if hasattr(agent_two, 'source_devices') else None,
+            agent_one_name: agent_one.source_devices,
+            agent_two_name: agent_two.source_devices,
         }
 
         self.target_devices = {
-            agent_one_name: agent_one.target_devices if hasattr(agent_one, 'target_devices') else None, 
-            agent_two_name: agent_two.target_devices if hasattr(agent_two, 'target_devices') else None, 
+            agent_one_name: agent_one.target_devices,
+            agent_two_name: agent_two.target_devices,
         }
         ''' 
             Assumed order of transit_devices is agent_one -> agent_two (i.e. source -> target).
@@ -46,6 +52,16 @@ class QConnect():
             agent_two_name: multiprocessing.Queue()
         }
 
+        '''
+        print(agent_one_name, 'has these target devices', self.target_devices[agent_one_name])
+        print(agent_two_name, 'has these target devices', self.target_devices[agent_two_name])
+        print(self.transit_devices[agent_one_name])
+        print(self.transit_devices[agent_two_name])
+        print(self.source_devices[agent_one_name])
+        print(self.source_devices[agent_two_name])
+        '''
+        
+
     def put(self, source, target, qubits):
         ''' 
         Constructs full list of devices that each qubit must travel through. 
@@ -59,9 +75,24 @@ class QConnect():
         transit_devices = self.transit_devices[source]
         target_devices = self.target_devices[target]
 
-        devices = source_devices + transit_devices + target_devices
-        delay = 0
-        self.queues[target].put((qubits, devices, delay))
+        devices = {
+            "source": source_devices,
+            "transit": transit_devices,
+            "target": target_devices,
+        }
+
+        program = self.agents[0].program
+        source_delay = 0
+
+        if not source_devices:
+            source_delay += pulse_length_default
+        else:
+            for device in source_devices:
+                if device is not None: 
+                    source_delay += device.apply(program, qubits)
+
+        self.queues[target].put((qubits, devices, source_delay))
+        return source_delay
 
     def get(self, agent): 
         '''
@@ -73,10 +104,20 @@ class QConnect():
         '''
         qubits, devices, delay = self.queues[agent].get()
         program = self.agents[0].program
-        for device in devices: 
+       
+        transit_devices = devices["transit"]
+        target_devices = devices["target"]
+
+        #default delays
+        if not transit_devices:
+            delay += fiber_length_default/signal_speed
+        if not target_devices:
+            delay += 0
+          
+        for device in list(itertools.chain(transit_devices, target_devices)):
             if device is not None: 
-                delay += device.apply(program, qubits)
-        
+                delay += device.apply(program, qubits)  
+
         return qubits, delay
 
 class CConnect(): 
