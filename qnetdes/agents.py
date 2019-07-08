@@ -1,6 +1,8 @@
 import inspect
 import sys
 import threading
+import tqdm
+import time
 
 __all__ = ["Agent"]
 
@@ -28,11 +30,29 @@ class Agent(threading.Thread):
         self.target_devices = []
         self.source_devices = []
 
-    def _manageAgentQubits(self):
+    def start_network_monitor(self, is_notebook):
         '''
             Starts tracking agent activity.
         '''
+        if is_notebook:
+            self.pbar_recv = tqdm.tqdm_notebook(desc='Qubits received by {}'.format(self.name), unit=' qubits')
+            self.pbar_sent = tqdm.tqdm_notebook(desc='Qubits sent by {}'.format(self.name), unit=' qubits')
+        else: 
+            self.pbar_recv = tqdm.tqdm(desc='Qubits received by {}'.format(self.name), unit=' qubits')
+            self.pbar_sent = tqdm.tqdm(desc='Qubits sent by {}'.format(self.name), unit=' qubits')
         threading.settrace(self._tracer)
+
+    def stop_network_monitor(self): 
+        '''
+        Stop progress bars
+        ''' 
+        self.pbar_recv.close()
+        self.pbar_sent.close()
+ 
+    def update_network_monitor(self, qubits, bar):
+        for _ in qubits: 
+            time.sleep(0.05)
+            bar.update(1)
 
     def _tracer(self, frame, event, arg):
         '''
@@ -145,11 +165,17 @@ class Agent(threading.Thread):
         if not set(qubits).issubset(set(self.qubits)): 
             raise Exception('Agent cannot send qubits they do not have')
             
-        # Removing qubits being sent
         connection = self.qconnections[target]
         source_delay = connection.put(self.name, target, qubits)
+        
+        # Removing qubits being sent
         self.qubits = list(set(self.qubits) - set(qubits))
+
+        # Update Agent's Time
         self.time += source_delay
+
+        # Update network monitor 
+        self.update_network_monitor(qubits, self.pbar_sent)
 
     def qrecv(self, source):
         '''
@@ -161,6 +187,10 @@ class Agent(threading.Thread):
         connection = self.qconnections[source]
         qubits, delay = connection.get(self)
         self.time += delay
+
+        # Update network monitor 
+        self.update_network_monitor(qubits, self.pbar_recv)
+
         return qubits
         
     def csend(self, target, cbits):
@@ -188,5 +218,3 @@ class Agent(threading.Thread):
     def run(self):
         '''Runtime logic for the Agent; this method should be overridden in child classes.'''
         pass
-
-    # def done():  May need to add agent.terminate() if multithreading is broken

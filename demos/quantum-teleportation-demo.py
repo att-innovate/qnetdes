@@ -41,11 +41,11 @@ class Bob(Agent):
         p.if_then(ro[1], Z(b))
 
 # Create Phi
-p = Program(X(2))
+p = Program(H(2))
 printWF(p)
 
 # Entangle qubits 0 and 1. 
-p += Program(X(0))
+p += Program(H(0))
 p += CNOT(0,1) 
 
 # Create Classical Memory
