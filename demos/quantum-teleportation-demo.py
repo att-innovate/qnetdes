@@ -41,7 +41,7 @@ class Bob(Agent):
         p.if_then(ro[0], Z(b))
 
 # Create Phi
-p = Program(H(2))
+p = Program(X(2),X(2))
 printWF(p)
 
 # Entangle qubits 0 and 1. 
@@ -52,8 +52,8 @@ p += CNOT(0,1)
 ro = p.declare('ro', 'BIT', 3)
 
 # Create Alice and Bob. Give Alice qubit 0 (ancilla) and qubit 2 (phi). Give Bob qubit 1
-alice = Alice(p, [0, 2], 'alice')
-bob = Bob(p, [1], 'bob')
+alice = Alice(p, qubits=[0, 2], name='alice')
+bob = Bob(p, qubits=[1], name='bob')
 
 # Connect Alice and Bob via a quantum connection and classical connection with no transit devices
 QConnect(alice, bob, transit_devices=[None])

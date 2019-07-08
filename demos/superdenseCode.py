@@ -58,19 +58,25 @@ class Bob(Agent):
 
 qvm = QVMConnection()
 program = Program()
+
+#define agents
 alice = Alice(program, qubits=[], cmem=[0,1])
-alice.add_source_devices([Fiber(length=100)])
+alice.add_source_devices([Fiber(length=100, apply_error=False)])
 bob = Bob(program, qubits=[])
 charlie = Charlie(program, qubits=[0,1])
 
+#connect agents
 QConnect(alice, bob, transit_devices=[Fiber(length=10, apply_error=False)])
 QConnect(bob, charlie, transit_devices=[])
 QConnect(alice, charlie, transit_devices=[])
 
+#simulate agents
 Simulation(alice,charlie,bob).run()
 results = qvm.run(program)
 wf_sim = WavefunctionSimulator()
 resultWF = wf_sim.wavefunction (program)
+
+#print initial states
 print('Final state: ', resultWF)
 print('Alice\'s bits: ', alice.cmem)
 print('Bob\'s results:', results)
