@@ -4,7 +4,7 @@ import sys
 
 __all__ = ["QConnect", "CConnect"]
 
-#pulse_length_default = 10 * 10 ** -12 # 10 ps photon pulse length
+pulse_length_default = 10 * 10 ** -12 # 10 ps photon pulse length
 signal_speed = 2.998 * 10 ** 5 #speed of light in km/s
 fiber_length_default = 0.0
 
@@ -78,7 +78,7 @@ class QConnect():
         qsource_delay = 0
 
         if not source_devices:
-            qsource_delay += self.agents[source].pulse_length
+            qsource_delay += pulse_length_default
         else:
             for device in source_devices:
                 qsource_delay += device.apply(program, qubits)
@@ -143,7 +143,7 @@ class CConnect():
         :param String target: name of recipient of program
         :param Array cbits: array of numbers corresponding to cbits agent is sending
         '''
-        csource_delay = self.agents[target].pulse_length * 8 * sys.getsizeof(cbits)
+        csource_delay = pulse_length_default * 8 * sys.getsizeof(cbits)
         self.queues[target].put((cbits, csource_delay))
         return csource_delay
 

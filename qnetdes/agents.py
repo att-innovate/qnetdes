@@ -52,14 +52,6 @@ class Agent(threading.Thread):
                     raise Exception('Agent cannot modify qubits they do not own')
 
         return self._tracer
-
-    def set_pulse_length(self, new_pulse_length):
-        '''
-            Set self laser pulse length in ps
-
-            :param Float new_pulse_length: Agent pulse length
-        '''
-        self.pulse_length = new_pulse_length
     
     def add_target_devices(self, new_target_devices):
         '''

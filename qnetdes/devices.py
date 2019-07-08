@@ -9,8 +9,9 @@ from pyquil import Program
 from pyquil.gates import *
 from qnetdes import *
 
-__all__ = ["Fiber"]
+__all__ = ["Fiber", "Laser", "SNSPD", "Intensity_Modulator"]
 
+signal_speed = 2.998 * 10 ** 5 #speed of light in km/s
 class Device(): 
     def __init__(self): 
         pass
@@ -48,35 +49,34 @@ class Fiber(Device):
 
 
 class Laser(Device):
-    def __init__(self, XZVariance, wavelength=1550, apply_error=True):
-        self.variance = XZVariance
+    def __init__(self, pulse_length=10 * 10 ** -12, expected_photons=1.0, rotation_prob_variance=1.0, wavelength=1550, apply_error=True):
+        self.variance = rotation_prob_variance
         self.wavelength = wavelength
+        self.photon_expectation = expected_photons
+        self.pulse_length = pulse_length
+        self.apply_error = apply_error
         
     def apply(self, program, qubits):
         for qubit in qubits:
-            if qubit is not None:
-                x_angle, z_angle = np.randoom.normal(0,self.variance,2)
+            if qubit is not None and self.apply_error:
+                numPhotons = np.random.poisson(lam=self.photon_expectation)
+                print("Produced ", numPhotons, " photons")
+                x_angle, z_angle = np.random.normal(0,self.variance,2)
                 program += RX(x_angle, qubit)
                 program += RZ(z_angle, qubit)
-        delay = 0
+        delay = self.pulse_length
         return delay
 
 
 class SNSPD(Device):
-    def __init__(self,  apply_error=True):
-
-        decibel_loss = length*attenuation_coefficient
-        self.attenuation = 10 ** (decibel_loss / 10)
+    def __init__(self,  expectation_photons=1, apply_error=True):
+        self.expected = expectation_photons
         self.apply_error = apply_error
-        self.length = length
 
-        
     def apply(self, program, qubits):
         for qubit in qubits:
-            if 1 > self.attenuation and qubit is not None:
-                print('using this device', 'fiber' + str(uuid.uuid1().int))
-                identifier = np.random.randint(1,10000)
-                ro = program.declare('fiber' + str(uuid.uuid1().int), 'BIT', 1)
+            if qubit is not None and self.apply_error:
+                ro = program.declare('SNSPD' + str(uuid.uuid1().int), 'BIT', 1)
                 program += MEASURE(qubit, ro) 
         delay = self.length
         return delay
@@ -92,14 +92,6 @@ class Intensity_Modulator(Device):
 
         
     def apply(self, program, qubits):
-        for qubit in qubits:
-            if 1 > self.attenuation and qubit is not None:
-                print('using this device', 'fiber' + str(uuid.uuid1().int))
-                identifier = np.random.randint(1,10000)
-                ro = program.declare('fiber' + str(uuid.uuid1().int), 'BIT', 1)
-                if self.apply_error:
-                    program += MEASURE(qubit, ro) 
-        delay = self.length
         return delay
 
 
