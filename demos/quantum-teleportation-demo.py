@@ -24,8 +24,8 @@ class Alice(Agent):
         p += H(phi)
 
         # Measure Ancilla and Phi
-        p += MEASURE(phi, ro[0])
-        p += MEASURE(a, ro[1])
+        p += MEASURE(a, ro[0])
+        p += MEASURE(phi, ro[1])
     
         # Send Cbits
         bits = [0,1]
@@ -37,15 +37,15 @@ class Bob(Agent):
         self.crecv('alice')
 
         p = self.program
-        p.if_then(ro[1], X(b))
-        p.if_then(ro[0], Z(b))
+        p.if_then(ro[0], X(b))
+        p.if_then(ro[1], Z(b))
 
 # Create Phi
-p = Program(X(2),X(2))
+p = Program(X(2))
 printWF(p)
 
 # Entangle qubits 0 and 1. 
-p += Program(H(0))
+p += Program(X(0))
 p += CNOT(0,1) 
 
 # Create Classical Memory
@@ -56,12 +56,11 @@ alice = Alice(p, qubits=[0, 2], name='alice')
 bob = Bob(p, qubits=[1], name='bob')
 
 # Connect Alice and Bob via a quantum connection and classical connection with no transit devices
-QConnect(alice, bob, transit_devices=[None])
+QConnect(alice, bob)
 CConnect(alice, bob)
-
-qvm = QVMConnection()
-qvm.run(p)
-printWF(p)
 
 # Run simulation
 Simulation(alice, bob).run()
+qvm = QVMConnection()
+qvm.run(p)
+printWF(p)

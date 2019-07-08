@@ -20,7 +20,11 @@ class Device():
 
 class Fiber(Device):
     def __init__(self, length=0.0, attenuation_coefficient = -0.16, apply_error=True):
-
+        '''
+        :param Float length: length of fiber optical cable in km
+        :param Float attenuation_coefficient: coefficient determining likelihood of photon loss
+        :param Boolean apply_error: True is device should apply error, otherwise, only returns time delay
+        '''
         decibel_loss = length*attenuation_coefficient
         self.attenuation = 10 ** (decibel_loss / 10)
         self.apply_error = apply_error
@@ -28,13 +32,17 @@ class Fiber(Device):
 
         
     def apply(self, program, qubits):
+        '''
+        Applies device's error and returns time that photon took to pass through simulated device
+
+        :param Program program: program to be modified
+        :param List qubits: qubits being sent
+        '''
         for qubit in qubits:
-            if 1 > self.attenuation and qubit is not None:
-                print('using this device', 'fiber' + str(uuid.uuid1().int))
-                identifier = np.random.randint(1,10000)
+            if np.random.rand() < self.attenuation and qubit is not None and self.apply_error:
+                print('Apply Fiber Error')
                 ro = program.declare('fiber' + str(uuid.uuid1().int), 'BIT', 1)
-                if self.apply_error:
-                    program += MEASURE(qubit, ro) 
+                program += MEASURE(qubit, ro) 
         delay = self.length
         return delay
 

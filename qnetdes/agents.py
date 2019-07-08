@@ -146,9 +146,9 @@ class Agent(threading.Thread):
             raise Exception('Agent cannot send qubits they do not have')
             
         # Removing qubits being sent
-        self.qubits = list(set(self.qubits) - set(qubits))
         connection = self.qconnections[target]
         source_delay = connection.put(self.name, target, qubits)
+        self.qubits = list(set(self.qubits) - set(qubits))
         self.time += source_delay
 
     def qrecv(self, source):
@@ -159,8 +159,7 @@ class Agent(threading.Thread):
         :param String source: name of source of qubits agent is attempting to retrieve from. 
         '''
         connection = self.qconnections[source]
-        qubits, delay = connection.get(self.name)
-        self.qubits = list(set(qubits + self.qubits))
+        qubits, delay = connection.get(self)
         self.time += delay
         return qubits
         
