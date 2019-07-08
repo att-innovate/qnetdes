@@ -1,11 +1,12 @@
 import multiprocessing
 import itertools
+import sys
 
 __all__ = ["QConnect", "CConnect"]
 
-pulse_length_default = 10 * 10 ** -12 # 10 ps photon pulse length
-fiber_length_default = 1
+#pulse_length_default = 10 * 10 ** -12 # 10 ps photon pulse length
 signal_speed = 2.998 * 10 ** 5 #speed of light in km/s
+fiber_length_default = 0.0
 
 
 class QConnect(): 
@@ -82,17 +83,17 @@ class QConnect():
         }
 
         program = self.agents[0].program
-        source_delay = 0
+        qsource_delay = 0
 
         if not source_devices:
-            source_delay += pulse_length_default
+            qsource_delay += self.agents[0].pulse_length
         else:
             for device in source_devices:
                 if device is not None: 
-                    source_delay += device.apply(program, qubits)
+                    qsource_delay += device.apply(program, qubits)
 
-        self.queues[target].put((qubits, devices, source_delay))
-        return source_delay
+        self.queues[target].put((qubits, devices, qsource_delay))
+        return qsource_delay
 
     def get(self, agent): 
         '''
@@ -103,6 +104,7 @@ class QConnect():
         :param String agent: name of the agent receiving the qubits 
         '''
         qubits, devices, delay = self.queues[agent].get()
+
         program = self.agents[0].program
        
         transit_devices = devices["transit"]
@@ -121,13 +123,15 @@ class QConnect():
         return qubits, delay
 
 class CConnect(): 
-    def __init__(self, agent_one, agent_two):
+    def __init__(self, agent_one, agent_two, length=0.0):
         # add ingress and egress classical traffic between agent_one and agent_two
         agent_one_name = agent_one.name
         agent_two_name = agent_two.name
         agent_one.cconnections[agent_two_name] = self
         agent_two.cconnections[agent_one_name] = self
        
+        self.agents = (agent_one, agent_two)
+        self.length = length
         '''
             Create queue to keep track of multiple requests. Name of queue is name of
             target agent.  
@@ -137,6 +141,8 @@ class CConnect():
             agent_two_name: multiprocessing.Queue()
         }
 
+    
+
     def put(self, target, cbits):
         ''' 
         Places cbits and delay on the queue. 
@@ -144,8 +150,9 @@ class CConnect():
         :param String target: name of recipient of program
         :param Array cbits: array of numbers corresponding to cbits agent is sending
         '''
-        delay = 0
-        self.queues[target].put((cbits, delay))
+        csource_delay = self.agents[0].pulse_length * 8 * sys.getsizeof(cbits)
+        self.queues[target].put((cbits, csource_delay))
+        return csource_delay
 
     def get(self, agent): 
         ''' 
@@ -153,5 +160,7 @@ class CConnect():
 
         :param String agent: name of the agent receiving the cbits
         '''
-        cbits, _ = self.queues[agent].get()
-        return cbits
+        cbits, delay = self.queues[agent].get()
+        delay += self.length/signal_speed
+
+        return cbits, delay

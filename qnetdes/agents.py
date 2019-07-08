@@ -15,6 +15,7 @@ class Agent(threading.Thread):
             self.name = self.__class__.__name__
 
         self.time = 0.0
+        self.pulse_length = 10 * 10 ** -12 # 10 ps default photon pulse length
         self.qconnections = {}
         self.cconnections = {}
 
@@ -52,11 +53,28 @@ class Agent(threading.Thread):
 
         return self._tracer
 
-    #add devices
+    def set_pulse_length(self, new_pulse_length):
+        '''
+            Set self laser pulse length in ps
+
+            :param Float new_pulse_length: Agent pulse length
+        '''
+        self.pulse_length = new_pulse_length
+    
     def add_target_devices(self, new_target_devices):
+        '''
+            Add self target devices
+
+            :param List new_target_devices: Agent new target devices
+        '''
         self.target_devices.extend(new_target_devices)
 
     def add_source_devices(self, new_source_devices):
+        '''
+            Add self source devices
+
+            :param List new_source_devices: Agent new source devices
+        '''
         self.source_devices.extend(new_source_devices)
 
     @property
@@ -65,17 +83,28 @@ class Agent(threading.Thread):
 
     @cmem.setter
     def cmem(self, cmem):
+        '''
+            Set classical memory
+
+            :param List cmem: Classical memory
+        '''
         if len(cmem) >= 0 and all(bit == 0 or bit == 1 for bit in cmem):
             self.__cmem = cmem
         else:  
             raise Exception('Classical bits must be either 0 or 1')
 
     def add_cmem(self, cbits):
+        '''
+            Add more classical memory
+
+            :param List cbits: classical memory to extend
+        '''
         self.cmem = self.__cmem.extend(cbits) 
 
     def add_device(self, device_type, device):
         ''' 
             Add device to agent node.
+
             :param String device_type: category of device
             :param Device device: instance of device added
         '''
@@ -110,7 +139,7 @@ class Agent(threading.Thread):
         for target to retrieve. 
 
         :param String target: name of destination for packet
-        :param Packet packet: packet to send to destination
+        :param List qubits: packet to send to destination
         '''
         # Raise exception if agent sends qubits they do no have
         if not set(qubits).issubset(set(self.qubits)): 
@@ -138,11 +167,13 @@ class Agent(threading.Thread):
     def csend(self, target, cbits):
         '''
         Sends classical bits from self to target.
+
         :param String target: name of agent self is sending cbits to
-        :param Array cbits: indicies of cbits self is sending to target
+        :param List cbits: indicies of cbits self is sending to target
         '''
         connection = self.cconnections[target]
-        connection.put(target, cbits)
+        csource_delay  = connection.put(target, cbits)
+        self.time += csource_delay
         
     def crecv(self, source):
         '''
@@ -151,7 +182,8 @@ class Agent(threading.Thread):
         :param String source: name of agent where cbits are from.
         '''
         connection = self.cconnections[source]
-        cbits = connection.get(self.name)
+        cbits, delay = connection.get(self.name)
+        self.time += delay
         return cbits
 
     def run(self):

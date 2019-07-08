@@ -19,7 +19,7 @@ class Device():
         pass
 
 class Fiber(Device):
-    def __init__(self, length, attenuation_coefficient = -0.16, apply_error=True):
+    def __init__(self, length=0.0, attenuation_coefficient = -0.16, apply_error=True):
 
         decibel_loss = length*attenuation_coefficient
         self.attenuation = 10 ** (decibel_loss / 10)
@@ -33,7 +33,8 @@ class Fiber(Device):
                 print('using this device', 'fiber' + str(uuid.uuid1().int))
                 identifier = np.random.randint(1,10000)
                 ro = program.declare('fiber' + str(uuid.uuid1().int), 'BIT', 1)
-                program += MEASURE(qubit, ro) 
+                if self.apply_error:
+                    program += MEASURE(qubit, ro) 
         delay = self.length
         return delay
 
