@@ -83,6 +83,14 @@ class Agent(threading.Thread):
 
         return self._tracer
     
+    def set_program(self, program):
+        '''
+            Set agent's program
+    
+            :param Program program: pyquil program
+        '''
+        self.program = program
+
     def add_target_devices(self, new_target_devices):
         '''
             Add self target devices
