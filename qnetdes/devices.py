@@ -14,10 +14,22 @@ __all__ = ["Fiber", "Laser", "SNSPD", "Intensity_Modulator"]
 signal_speed = 2.998 * 10 ** 5 #speed of light in km/s
 class Device(): 
     def __init__(self): 
-        pass
+        self.name = 'Device'
+        self.success = 0
+        self.trials = 0
     
     def apply(self, program, qubits):
         pass
+
+    def get_success(self):
+        try: 
+            print('{} has a signal to noise ratio of {}/{}'.format(self.name, self.success, self.trials))
+        except:
+            pass
+    
+    def reset(self): 
+        self.success = 0
+        self.trials = 0 
 
 class Fiber(Device):
     def __init__(self, length=0.0, attenuation_coefficient = -0.16, apply_error=True):
@@ -30,7 +42,6 @@ class Fiber(Device):
         self.attenuation = 10 ** (decibel_loss / 10)
         self.apply_error = apply_error
         self.length = length
-
         
     def apply(self, program, qubits):
         '''
@@ -55,15 +66,22 @@ class Laser(Device):
         self.photon_expectation = expected_photons
         self.pulse_length = pulse_length
         self.apply_error = apply_error
+        self.name = 'Laser'
+        self.success = 0
+        self.trials = 0
         
     def apply(self, program, qubits):
+        success = 0
         for qubit in qubits:
             if qubit is not None and self.apply_error:
                 numPhotons = np.random.poisson(lam=self.photon_expectation)
-                print("Produced ", numPhotons, " photons")
-                x_angle, z_angle = np.random.normal(0,self.variance,2)
-                program += RX(x_angle, qubit)
-                program += RZ(z_angle, qubit)
+                if numPhotons != self.photon_expectation: success += 1
+                # x_angle, z_angle = np.random.normal(0,self.variance,2)
+                # program += RX(x_angle, qubit)
+                # program += RZ(z_angle, qubit)
+        if self.apply_error:
+            self.success += success 
+            self.trials += len(qubits)
         delay = self.pulse_length
         return delay
 
