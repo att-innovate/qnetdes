@@ -61,7 +61,7 @@ program = Program()
 
 #define agents
 alice = Alice(program, cmem=[0,1])
-alice.add_source_devices([Fiber(length=100, apply_error=True)])
+alice.add_source_devices([Fiber(length=100, apply_error=False)])
 bob = Bob(program)
 charlie = Charlie(program, qubits=[0,1])
 
@@ -77,9 +77,11 @@ wf_sim = WavefunctionSimulator()
 resultWF = wf_sim.wavefunction(program)
 
 #print initial states
+'''
 print('Final state: ', resultWF)
 print('Alice\'s bits: ', alice.cmem)
 print('Bob\'s results:', results)
 
 print('Bob\'s time:', bob.time)
 print('Alice\'s time:', alice.time)
+'''
