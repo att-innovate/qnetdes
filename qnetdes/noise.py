@@ -102,7 +102,7 @@ def depolarizing_channel(program, qubit, prob: float):
     if np.random.rand() < prob:
         program += NOISY_I(qubit)
     elif random_gate == 1:
-        program += NOISY_I(qubit)
+        program += NOISY_X(qubit)
     elif random_gate == 2:
         program += NOISY_Y(qubit)
     elif random_gate == 3:
@@ -124,7 +124,7 @@ def measure(program, qubit, prob: float, name="ro"):
                     ro_declared = True
             except:
                 pass
-                
+
         if ro_declared:
             ro = program.declare("a"+str(uuid.uuid1().int), 'BIT', 1)
         else:
