@@ -136,7 +136,7 @@ class Agent(threading.Thread):
 
             :param List cbits: classical memory to extend
         '''
-        self.cmem = self.__cmem.extend(cbits) 
+        self.__cmem.extend(cbits) 
 
     def add_device(self, device_type, device):
         ''' 
@@ -192,7 +192,7 @@ class Agent(threading.Thread):
         self.time += source_delay
 
         # Update Master Clock
-        self.master_clock.record_transaction(self.time, 'sent', self.name, target, qubits)
+        self.master_clock.record_qtransaction(self.time, 'sent', self.name, target, qubits)
 
         # Update network monitor 
         if self.network_monitor_running: 
@@ -210,7 +210,7 @@ class Agent(threading.Thread):
         self.time = max(source_time + delay, self.time) 
 
         # Update Master Clock
-        self.master_clock.record_transaction(self.time, 'received', source, self.name, qubits)
+        self.master_clock.record_qtransaction(self.time, 'received', source, self.name, qubits)
         # Update network monitor 
         if self.network_monitor_running: 
             self.update_network_monitor(qubits, self.pbar_recv)
@@ -225,8 +225,12 @@ class Agent(threading.Thread):
         :param List cbits: indicies of cbits self is sending to target
         '''
         connection = self.cconnections[target]
-        csource_delay  = connection.put(target, cbits)
-        self.time += csource_delay
+        source_delay  = connection.put(target, cbits)
+        scaled_source_delay = source_delay*len(cbits)
+        self.time += scaled_source_delay
+        
+        #Update Master Clock
+        self.master_clock.record_ctransaction(self.time, 'sent', self.name, target, cbits)
         
     def crecv(self, source):
         '''
@@ -237,6 +241,10 @@ class Agent(threading.Thread):
         connection = self.cconnections[source]
         cbits, delay = connection.get(self.name)
         self.time += delay
+
+        #Update Master Clock
+        self.master_clock.record_ctransaction(self.time, 'received', source, self.name, cbits)
+
         return cbits
 
     def run(self):

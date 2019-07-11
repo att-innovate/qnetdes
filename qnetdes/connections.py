@@ -160,7 +160,9 @@ class CConnect():
 
         :param String agent: name of the agent receiving the cbits
         '''
-        cbits, delay = self.queues[agent].get()
-        delay += self.length/signal_speed
+        cbits, source_delay = self.queues[agent].get()
+        travel_delay = self.length/signal_speed
+        
+        scaled_delay = travel_delay*len(cbits) + source_delay
 
-        return cbits, delay
+        return cbits, scaled_delay
