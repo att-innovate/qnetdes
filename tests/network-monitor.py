@@ -30,6 +30,7 @@ program = Program()
 
 #define agents
 alice = Alice(program, qubits=list(range(0, 100))) 
+alice.add_source_devices([Laser(apply_error=True)])
 bob = Bob(program)
 
 #connect agents
@@ -39,3 +40,4 @@ QConnect(alice, bob, [Fiber(length=10, apply_error=False)])
 Simulation(alice, bob).run()
 results = qvm.run(program)
 
+print(alice.get_master_time())
