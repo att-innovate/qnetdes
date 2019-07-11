@@ -8,10 +8,42 @@ import uuid
 from qnetdes import *
 from pyquil.gates import *
 from pyquil.quil import DefGate
+from pyquil.noise import pauli_kraus_map
 
-__all__ = ["bit_flip", "phase_flip", "depolarizing_channel", "measure","normal_unitary_rotation"]
+__all__ = ["bit_flip", "phase_flip", "depolarizing_noise", "measure","normal_unitary_rotation"]
 
 ro_declared = False
+
+def kraus_op_bit_flip(prob: float):
+    noisy_I = np.sqrt(1-prob) * np.asarray([[1, 0], [0, 1]])
+    noisy_X = np.sqrt(prob) * np.asarray([[0, 1], [1, 0]])
+    return [noisy_I, noisy_X]
+
+
+def kraus_op_phase_flip(prob: float):
+    noisy_I = np.sqrt(1-prob) * np.asarray([[1, 0], [0, 1]])
+    noisy_Z = np.sqrt(prob) * np.asarray([[1, 0], [0, -1]])
+    return [noisy_I, noisy_Z]
+
+
+def kraus_op_depolarizing_channel(prob: float):
+    noisy_I = np.sqrt(1-prob) * np.asarray([[1, 0], [0, 1]])
+    noisy_X = np.sqrt(prob/3) * np.asarray([[0, 1], [1, 0]])
+    noisy_Z = np.sqrt(prob/3) * np.asarray([[1, 0], [0, -1]])
+    noisy_Y = np.sqrt(prob/3) * np.asarray([[0, 0-1.0j], [0+1.0j, 0]])
+    return [noisy_I, noisy_X, noisy_Y, noisy_Z]
+
+def random_unitary(n):
+    # draw complex matrix from Ginibre ensemble
+    z = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+    # QR decompose this complex matrix
+    q, r = np.linalg.qr(z)
+    # make this decomposition unique
+    d = np.diagonal(r)
+    l = np.diag(d) / np.abs(d)
+    return np.matmul(q, l)
+
+
 
 def bit_flip(program, qubit, prob: float):
     '''
@@ -21,25 +53,14 @@ def bit_flip(program, qubit, prob: float):
     :param Integer qubit: qubit to apply noise to 
     :param Float prob: probability of apply noise 
     '''
-    #define the gates
-    noisy_I = np.asarray([[1, 0], [0, 1]])
-    noisy_X = np.asarray([[0, 1], [1, 0]])
+    unique_id = uuid.uuid1().int
 
-    #get the Quil definition for the new gate
-    noisy_I_definition = DefGate("flip_NOISY_I", noisy_I)
-    noisy_X_definition = DefGate("flip_NOISY_X", noisy_X)
-
-    #get the gate constructor
-    flip_NOISY_I = noisy_I_definition.get_constructor()
-    flip_NOISY_X = noisy_X_definition.get_constructor()
-    program += noisy_I_definition
-    program += noisy_X_definition
+    flip_noisy_I_definition = DefGate("flipNOISE" + str(unique_id), random_unitary(2))
+    program += flip_noisy_I_definition
     
-    #apply
-    if np.random.rand() > prob:
-        program += flip_NOISY_X(qubit)
-    else:
-        program += flip_NOISY_I(qubit)
+    program.define_noisy_gate("flipNOISE" + str(unique_id), [qubit], kraus_op_bit_flip(prob))
+    program += ("flipNOISE" + str(unique_id), qubit)
+    
     
 
 def phase_flip(program, qubit, prob: float):
@@ -50,27 +71,17 @@ def phase_flip(program, qubit, prob: float):
     :param Integer qubit: qubit to apply noise to 
     :param Float prob: probability of apply noise 
     '''
-    #define the gates
-    noisy_I = np.asarray([[1, 0], [0, 1]])
-    noisy_Z = np.asarray([[1, 0], [0, -1]])
 
-    #get the Quil definition for the new gate
-    noisy_I_definition = DefGate("phase_NOISY_I", noisy_I)
-    noisy_Z_definition = DefGate("phase_NOISY_Z", noisy_Z)
+    unique_id = uuid.uuid1().int
 
-    #get the gate constructor
-    phase_NOISY_I = noisy_I_definition.get_constructor()
-    phase_NOISY_Z = noisy_Z_definition.get_constructor()
-    program += noisy_I_definition
-    program += noisy_Z_definition
+    noise = np.asarray([[1.0, 0], [0, 1.0]])
+    phase_noisy_I_definition = DefGate("phaseNOISE" + str(unique_id), random_unitary(2))
+    program += phase_noisy_I_definition
     
-    #apply
-    if np.random.rand() > prob:
-        program += phase_NOISY_Z(qubit)
-    else:
-        program += phase_NOISY_I(qubit)
+    program.define_noisy_gate("phaseNOISE" + str(unique_id), [qubit], kraus_op_phase_flip(prob))
+    program += ("phaseNOISE" + str(unique_id), qubit)
 
-def depolarizing_channel(program, qubit, prob: float):
+def depolarizing_noise(program, qubit, prob: float):
     '''
     Apply depolarizing noise with probability
 
@@ -78,35 +89,14 @@ def depolarizing_channel(program, qubit, prob: float):
     :param Integer qubit: qubit to apply noise to 
     :param Float prob: probability of apply noise 
     '''
-    #define the gates
-    noisy_I = np.asarray([[1, 0], [0, 1]])
-    noisy_X = np.asarray([[1, 0], [0, -1]])
-    noisy_Z = np.asarray([[1, 0], [0, -1]])
-    noisy_Y = np.asarray([[0, 0-1.0j], [0+1.0j, 0]])
+    unique_id = uuid.uuid1().int
 
-    #get the Quil definition for the new gate
-    noisy_I_definition = DefGate("dp_NOISY_I", noisy_I)
-    noisy_X_definition = DefGate("dp_NOISY_X", noisy_X)
-    noisy_Z_definition = DefGate("dp_NOISY_Z", noisy_Z)
-    noisy_Y_definition = DefGate("dp_NOISY_Y", noisy_Y)
-
-    #get the gate constructor
-    dp_NOISY_I = noisy_I_definition.get_constructor()
-    dp_NOISY_X = noisy_X_definition.get_constructor()
-    dp_NOISY_Z = noisy_Z_definition.get_constructor()
-    dp_NOISY_Y = noisy_Y_definition.get_constructor()
-    program += (noisy_I_definition, noisy_X_definition, noisy_Z_definition, noisy_Y_definition)
+    noise = np.asarray([[1.0, 0], [0, 1.0]])
+    dp_noisy_I_definition = DefGate("dpNOISE" + str(unique_id), random_unitary(2))
+    program += dp_noisy_I_definition
     
-    random_gate = random.randint(1,3)
-    #apply
-    if np.random.rand() < prob:
-        program += NOISY_I(qubit)
-    elif random_gate == 1:
-        program += NOISY_X(qubit)
-    elif random_gate == 2:
-        program += NOISY_Y(qubit)
-    elif random_gate == 3:
-        program += NOISY_Z(qubit)
+    program.define_noisy_gate("dpNOISE" + str(unique_id), [qubit], kraus_op_depolarizing_channel(prob))
+    program += ("dpNOISE" + str(unique_id), qubit)
 
 def measure(program, qubit, prob: float, name="ro"):
     '''
@@ -117,24 +107,25 @@ def measure(program, qubit, prob: float, name="ro"):
     :param Float prob: probability of apply noise 
     '''
     if np.random.rand()> prob:
-        global ro_declared
-        for inst in program.instructions:
-            try:
-                if inst.name == "ro":
-                    ro_declared = True
-            except:
-                pass
 
-        if ro_declared:
-            ro = program.declare("a"+str(uuid.uuid1().int), 'BIT', 1)
-        else:
+        #check if ro has been declared
+        global ro_declared
+        if not ro_declared:
+            for inst in program.instructions:
+                try:
+                    if inst.name == "ro":
+                        ro_declared = True
+                except:
+                    pass
+
             ro = program.declare("ro", 'BIT', 1)
             ro_declared = True
             program += MEASURE(qubit, ro)
 
-
-
-def normal_unitary_rotation(program, qubit, prob:float):
+        elif ro_declared:
+            ro = program.declare(name+str(uuid.uuid1().int), 'BIT', 1)
+           
+def normal_unitary_rotation(program, qubit, prob:float, variance):
     '''
     Apply X and Z rotation with probability
 
@@ -143,7 +134,7 @@ def normal_unitary_rotation(program, qubit, prob:float):
     :param Float prob: probability of apply noise 
     '''
     if np.random.rand() > prob:
-        x_angle, z_angle = np.random.normal(0,self.variance,2)
+        x_angle, z_angle = np.random.normal(0, variance, 2)
         program += RX(x_angle, qubit)
         program += RZ(z_angle, qubit)
     

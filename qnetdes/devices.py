@@ -13,7 +13,7 @@ __all__ = ["Fiber", "Laser", "SNSPD", "Intensity_Modulator"]
 
 signal_speed = 2.998 * 10 ** 5 #speed of light in km/s
 class Device(): 
-    def __init__(self): 
+    def __init__(self, apply_error=True): 
         pass
     
     def apply(self, program, qubits):
@@ -40,7 +40,7 @@ class Fiber(Device):
         :param List qubits: qubits being sent
         '''
         for qubit in qubits:
-            if qubit is not None and self.apply_error:
+            if self.apply_error:
                 noise.measure(program, qubit, self.attenuation, "Fiber")
         delay = self.length/signal_speed
         return delay
@@ -58,24 +58,21 @@ class Laser(Device):
         
     def apply(self, program, qubits):
         for qubit in qubits:
-            if qubit is not None and self.apply_error:
+            if self.apply_error:
                 numPhotons = np.random.poisson(lam=self.photon_expectation)
                 self.trials += 1
                 if numPhotons == 1: self.success += 1
                 
-                
                 '''
-                #Rotation noise
-                x_angle, z_angle = np.random.normal(0,self.variance,2)
-                program += RX(x_angle, qubit)
-                program += RZ(z_angle, qubit)
+                Rotation Noise
+                noise.normal_unitary_rotation(program, qubit, 0.5, self.variance)
                 '''
         delay = self.pulse_length
         return delay
 
 
 class SNSPD(Device):
-    def __init__(self,  expectation_photons=1, apply_error=True):
+    def __init__(self,  apply_error=True):
         pass
 
     def apply(self, program, qubits):
@@ -83,7 +80,7 @@ class SNSPD(Device):
 
 
 class Intensity_Modulator(Device):
-    def __init__(self, Average_Photons=1.0, apply_error=True):
+    def __init__(self, apply_error=True, Average_Photons=1.0):
         pass
 
         
