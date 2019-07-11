@@ -74,7 +74,6 @@ def phase_flip(program, qubit, prob: float):
 
     unique_id = uuid.uuid1().int
 
-    noise = np.asarray([[1.0, 0], [0, 1.0]])
     phase_noisy_I_definition = DefGate("phaseNOISE" + str(unique_id), random_unitary(2))
     program += phase_noisy_I_definition
     
@@ -91,7 +90,6 @@ def depolarizing_noise(program, qubit, prob: float):
     '''
     unique_id = uuid.uuid1().int
 
-    noise = np.asarray([[1.0, 0], [0, 1.0]])
     dp_noisy_I_definition = DefGate("dpNOISE" + str(unique_id), random_unitary(2))
     program += dp_noisy_I_definition
     
