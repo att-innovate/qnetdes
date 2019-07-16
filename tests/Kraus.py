@@ -40,8 +40,11 @@ num_shots = 1000
 
 p.wrap_in_numshots_loop(num_shots)
 
+results = np.zeros(num_expts)
 
-results = qvm.run(p, trials = 1000)
+for i in range(num_expts):
+    results_tmp = qvm.run(p, trials=1000)
+    results[i] = np.count_nonzero(results_tmp) / num_shots
 
     
 plt.figure(figsize=(10, 8))
