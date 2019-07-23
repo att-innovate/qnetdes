@@ -4,14 +4,12 @@
 Superdense Coding
 =========================================================
 
-Quantum teleportation, or "spooky action at a distance" as denoted by Einstein,
-is a method to deliver any arbitrary quantum state, :math:`|\psi\rangle`,
-between agents only using classical communication channels. This protocol allows Alice to deliver
-an unknown qubit state, :math:`|\psi\rangle`, to Bob using a shared bell state pair. 
+Superdense coding is a method to deliver any two classical bits using a single
+quantum bit. The protocol allows two agents, Alice and Bob, to use an entangled bell state pair
+along with interaction with a single quantum bit to transmit two classical bits of information . 
 
-This protocol enables quantum computers to interact as a network in sharing arbitrary quantum states. 
-Note that due to the requirement of classical communication, this protocol does not validate faster-than-light
-communication. Superdense coding transports two classical bits by sednding a quantum bit, and thus is the inverse
+This protocol enables quantum computers to interact as a network in sharing classical information using quantum bits.
+Superdense coding transports two classical bits by sednding a quantum bit, and thus is the inverse
 of :ref:`quantum teleportation <quantum-teleportation>`.
 
 Source Code
