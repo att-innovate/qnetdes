@@ -16,7 +16,7 @@ class QConnect:
 
         :param Agent agent_one: first agent in connection
         :param Agent agent_two: second agent in connection
-        :param Array transit_devices: array of devices packets travel through - assumed order: agent_one -> agent_two
+        :param Array transit_devices: array of devices qubits travel through - assumed order: agent_one -> agent_two
         '''
         agent_one_name = agent_one.name 
         agent_two_name = agent_two.name
@@ -46,7 +46,7 @@ class QConnect:
             agent_two_name: agent_two
         }
 
-        # create queue to keep track of multiple requests. name of queue is name of target agent.  
+        # create queue to keep track of multiple requests. Name of queue is name of target agent.  
         self.queues = {
             agent_one_name: queue.Queue(),
             agent_two_name: queue.Queue()

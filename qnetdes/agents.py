@@ -115,7 +115,7 @@ class Agent(threading.Thread):
 
     def add_target_devices(self, new_target_devices):
         '''
-            Add target devices. Every qubit sent from Agent will pass through these devices, 
+            Add target devices. Every qubit sent to Agent will pass through these devices, 
             and, if set, the device's noise will be applied
 
             :param List new_target_devices: Agent new target devices
@@ -124,7 +124,7 @@ class Agent(threading.Thread):
 
     def add_source_devices(self, new_source_devices):
         '''
-            Add source devices. Every qubit sent to Agent will pass through these devices, 
+            Add source devices. Every qubit sent by Agent will pass through these devices, 
             and, if set, the device's noise will be applied 
 
             :param List new_source_devices: Agent new source devices
