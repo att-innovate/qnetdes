@@ -6,10 +6,10 @@ Superdense Coding
 
 Superdense coding is a method to deliver any two classical bits using a single
 quantum bit. The protocol allows two agents, Alice and Bob, to use an entangled bell state pair
-along with interaction with a single quantum bit to transmit two classical bits of information . 
+along with interaction with a single quantum bit to transmit two classical bits of information. 
 
 This protocol enables quantum computers to interact as a network in sharing classical information using quantum bits.
-Superdense coding transports two classical bits by sednding a quantum bit, and thus is the inverse
+Superdense coding transports two classical bits by sending a quantum bit, and thus is the inverse
 of :ref:`quantum teleportation <quantum-teleportation>`.
 
 Source Code

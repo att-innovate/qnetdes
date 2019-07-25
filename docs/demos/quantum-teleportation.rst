@@ -14,11 +14,6 @@ Note that due to the requirement of classical communication, this protocol does 
 communication. Quantum teleporatation transports a quantum state by sending two classical bits, and thus is the inverse
 of :ref:`superdense coding <superdense-coding>`.
 
-Source Code
-=========================================================
-The source code for this demo is included in the demos directory of the NetQuil repository.
-
-
 Protocol
 =========================================================
 Quantum teleportation involves 3 agents, Alice, Bob, and Charlie. Charlie prepares the bell state pair and distributes
@@ -82,7 +77,7 @@ using NetQuil, we want to send each qubit to Alice and Bob.
         self.qsend(bob.name, [1])
 
 Now, we will create Agent Alice and Agent Bob. Alice will project her state :math:`|\psi\rangle = \alpha |0\rangle + \beta |1\rangle` onto her 
-Bell State Pair. Then, she will measure her two qubits, and send the results to Bob, which Bob will use to recreate Alice original state
+Bell State Pair. Then, she will measure her two qubits, and send the results to Bob, which Bob will use to recreate Alice's original state
 :math:`|\psi\rangle = \alpha |0\rangle + \beta |1\rangle` with his Bell State Pair.
 
 .. code:: python
@@ -125,7 +120,7 @@ Bell State Pair. Then, she will measure her two qubits, and send the results to 
 Create Program
 ----------------------------------------
 We can now define our pyquil program to pass into each agent. For this demo, we will let qubit 2 be our state :math:`|\psi\rangle`, 
-prepared using a Hadamard. Therefore, we Alice has state :math:`|\psi\rangle = |2\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)`. 
+prepared using a Hadamard. Therefore, Alice has state :math:`|\psi\rangle = |2\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)`. 
 
 
 .. code:: python
@@ -185,4 +180,7 @@ Extend Simulation
 You have now created a program to simulate quantum teleportation! You can now teleport a quantum state only using
 a classical channel quantum bit. It is now time to get creative. Add noise, add extra agents, or add a complicated initial state.
 
+Source Code
+=========================================================
+The source code for this demo is included in the demos directory of the NetQuil repository.
 
