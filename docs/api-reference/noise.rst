@@ -4,5 +4,3 @@
 -------------------------------------
 .. automodule:: qnetdes.noise
    :members:
-   :special-members:
-   :show-inheritance:

@@ -40,16 +40,16 @@ To instead install NetQuil from the source, clone the repository.
 Tutorial - Bell State Distribution
 ==================================
 Lets start by building our first NetQuil program that creates and distributes a bell state pair 
-between Alice and Bob. In this tutorial you will be introduced to ``Agents`` (the nodes in your network) and their operations, 
+between Alice and Bob. In this tutorial you will be introduced to ``Agents`` (the nodes in your network), 
 ``QConnections`` and ``CConnections`` (the channels connecting nodes), and ``Devices`` (the customizable noise modules and error simulators).
-Checkout our other demos to see more advance examples of NetQuil in action, and, for the more bold you, review our whitepaper and codebase on Distributed Shor's Algorithm using NetQuil.  
+Checkout our other demos to see more advanced examples of NetQuil in action, and, for the more bold of you, review our whitepaper and codebase on Distributed Shor's Algorithm using NetQuil.  
 
 This tutorial assumes you have a basic understanding of quantum information theory
 and the pyquil framework built on Quil. For a quick refresher, review this `resource <http://docs.rigetti.com/en/stable/intro.html>`_.
 
 Import Dependencies
 ===================
-Lets start by importing all of our dependencies. 
+Let's start by importing all of our dependencies. 
 
 .. code-block:: python
     :linenos:
@@ -64,7 +64,7 @@ Agents are nodes in our quantum network. Each Agent should extend the agent clas
 a ``run`` function, allowing that Agent to run on its own thread. Agents can send and receive quantum and classical information, 
 as well as define source and target devices that ingress and egress information must pass through. They also maintain local clocks 
 that increment based on traffic, a network monitor recording their traffic, and a list of qubits and classical bits that
-they manage. 
+they manage.
 
 All Agents should share the same PyQuil program that they can modify to simulate network traffic.
 The program can be explicitly attached to each Agent if presimulation computations must be done, or 
@@ -92,7 +92,7 @@ be omitted as set default.
 Create the Run Function
 =======================
 An Agent's run function should encapsulate all of the work that Agent is responsible for. ``get_qubits`` returns the list of qubits that
-an Agent owns and may modify. ``get_program`` returns the global program shared between Agents. ``qsend(name, qubits)`` and ``qrecv(name)`` 
+an Agent owns and may modify. ``get_program`` returns the global program shared between Agents, and ``qsend(name, qubits)`` and ``qrecv(name)`` 
 will send and receive qubits from one agent to another, respectively. 
 
 .. code-block:: python
@@ -121,7 +121,7 @@ will send and receive qubits from one agent to another, respectively.
             # Measure qubits and run program
             p += Measure(b)
             r = qvm.run(p)
-            self.log_results(r) 
+            print(r) 
 
 Connect the Agents
 ==================
@@ -184,7 +184,7 @@ All together, your program should look something like this!
             # Measure qubits and run program
             p += Measure(b)
             r = qvm.run(p)
-            self.log_results(r) 
+            print(r)
 
     alice = Alice(qubits=[0,1])
     bob = Bob()

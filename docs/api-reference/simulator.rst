@@ -5,4 +5,3 @@
 .. autoclass:: qnetdes.simulator.Simulation
    :members:
    :special-members:
-   :show-inheritance:
