@@ -10,9 +10,9 @@ signal_speed = 2.998 * 10 ** 5 #speed of light in km/s
 fiber_length_default = 0.0
 
 class QConnect: 
-    def __init__(self, *args, transit_devices=[],):
+    def __init__(self, *args, transit_devices=[]):
         '''
-        This is the base class for a quantum connection between two agents. 
+        This is the base class for a quantum connection between multiple agents. 
 
         :param List *args: list of agents to connect
         :param List transit_devices: list of devices qubits travel through - assumed order: agent_one -> agent_two
@@ -107,7 +107,7 @@ class QConnect:
 class CConnect: 
     def __init__(self, *args, length=0.0):
         '''
-        This is the base class for a classical connection between two agents. 
+        This is the base class for a classical connection between multiple agents. 
 
         :param List *args, list of agents to connect
         :param Float length: distance between first and second agent
