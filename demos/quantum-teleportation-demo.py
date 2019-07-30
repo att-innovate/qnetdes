@@ -86,9 +86,7 @@ bob = Bob(p, name='bob')
 charlie = Charlie(p, qubits=[0,1], name='charlie')
 
 # Connect agents to distribute qubits and report results
-QConnect(alice, charlie)
-QConnect(bob, charlie)
-QConnect(alice, bob)
+QConnect(alice, charlie, bob)
 CConnect(alice, bob)
 
 # Run simulation
