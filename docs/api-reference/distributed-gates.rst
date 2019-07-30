@@ -2,7 +2,7 @@
 
 ``Distributed Quantum Gates``
 ----------------------------------
-.. automodule:: qnetdes.distributed-gates
+.. automodule:: netQuil.distributed-gates
    :members:
    :special-members:
    :show-inheritance:
