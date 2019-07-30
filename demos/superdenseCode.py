@@ -75,9 +75,7 @@ bob = Bob(program)
 charlie = Charlie(program, qubits=[0,1])
 
 # Connect Agents
-QConnect(alice, bob, [Fiber(length=10, apply_error=True) ])
-QConnect(bob, charlie)
-QConnect(alice, charlie)
+QConnect(alice, bob, charlie, transit_devices=[Laser(apply_error=False)])
 
 # Simulate Agents
 Simulation(alice,charlie,bob).run(trials=1, agent_classes=[Alice, Charlie, Bob])
