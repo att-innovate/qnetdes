@@ -13,6 +13,9 @@ def distributed_gate(agent):
     agent.using_distributed_gate = not agent.using_distributed_gate
 
 def notify_entangler_is_done(caller, target_agents): 
+    ''' 
+    Target agents should be expecting a cbit signaling the distributed gate is complete
+    '''
     for agent in target_agents:
         cbit = [1] # cbit signaling done
         caller.csend(agent.name, cbit)
@@ -21,10 +24,10 @@ def cat_entangler(control, targets, entangled=False, notify=False):
     '''
     Performs the cat entangler, one of two primitive operations for 
     distributed quantum computing which can be used to implement non-local operations.
-    Projects the state Alice's local control bit (phi) on entangled qubits owned by other Agents, 
+    Projects the state of Alice's local control bit (phi) on entangled qubits owned by other Agents, 
     allowing Agents to effectively use Alice's qubit as a control for their own operations. Measurements
     are stored in ro in the position corresponding to qubit's index (i.e. ith qubit measured into ro[i]). 
-    Once the cat_entangler is started in the control agent, each target agent to wait until they have received
+    Once the cat_entangler is started in the control agent, each target agent waits until they have received
     two classical bits from the control. The first is a placeholder for a measurement and the second indicates that
     the cat entangler is complete. e.g. non-local CNOTs, non-local controlled gates, and teleportation.
 
