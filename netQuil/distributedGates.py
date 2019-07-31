@@ -5,7 +5,7 @@ sys.path.insert(1, '/Users/matthewradzihovsky/documents/netQuil')
 from pyquil import Program
 from pyquil.api import WavefunctionSimulator, QVMConnection
 from pyquil.gates import *
-from qnetdes import *
+from netQuil import *
 
 __all__ = ["cat_entangler", "cat_disentangler", "QFT"]
 
