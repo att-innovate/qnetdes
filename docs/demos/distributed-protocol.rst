@@ -1,10 +1,6 @@
-.. _demos: 
+.. _distributed-protocol: 
 
 =========================================================
-Demos
+Distributed Quantum Protocol
 =========================================================
 
-.. toctree::
-   demos/quantum-teleportation
-   demos/superdense-coding
-   demos/distributed-protocol
