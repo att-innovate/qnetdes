@@ -14,9 +14,14 @@ class QConnect:
         '''
         This is the base class for a quantum connection between two agents. 
 
+<<<<<<< Updated upstream:qnetdes/connections.py
         :param Agent agent_one: first agent in connection
         :param Agent agent_two: second agent in connection
         :param Array transit_devices: array of devices qubits travel through - assumed order: agent_one -> agent_two
+=======
+        :param agents \*args: list of agents to connect
+        :param List transit_devices: list of devices qubits travel through - assumed order: agent_one -> agent_two
+>>>>>>> Stashed changes:netQuil/connections.py
         '''
         agent_one_name = agent_one.name 
         agent_two_name = agent_two.name
@@ -121,8 +126,12 @@ class CConnect:
         '''
         This is the base class for a classical connection between two agents. 
 
+<<<<<<< Updated upstream:qnetdes/connections.py
         :param Agent agent_one: first agent in connection
         :param Agent agent_two: second agent in connection
+=======
+        :param agents \*args: list of agents to connect
+>>>>>>> Stashed changes:netQuil/connections.py
         :param Float length: distance between first and second agent
         '''
         agent_one_name = agent_one.name
