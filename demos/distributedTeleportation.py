@@ -50,7 +50,6 @@ p = Program()
 
 # Prepare psi
 p += H(2)
-p += Z(2)
 p += RZ(1.2, 2)
 print('Alice has Qubits 0 and 2, Bob has qubit 1')
 printWF('Before Teleportation: ', p)
