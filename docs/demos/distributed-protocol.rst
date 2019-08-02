@@ -5,7 +5,7 @@ Distributed Quantum Protocol
 =========================================================
 
 Due to a variety of constraints, modern quantum computers
-are often limited to working with a small set of qubits and therefore limited to solving small problems involving few qubits. 
+are limited to working with a small system of qubits and, therefore, limited to solving small problems involving few qubits. 
 Distributed quantum computing (DQC) is a means of leveraging the computation power of a quantum network 
 in order to solve a problem too large for any single quantum computer. Each 
 node on a quantum network is connected via a classical and quantum channel and managers its own
@@ -20,12 +20,13 @@ and their usage in non-local CNOTs, non-local controlled gates, and teleportatio
 
 Cat-Entangler
 =============
-The cat-entangler allows a single agent (Alice) in posession of a control qubit (phi)
+The cat-entangler allows a single agent (Alice) in posession of a control qubit (:math:`|\psi\rangle = \alpha |0\rangle + \beta |1\rangle`)
 to distribute control over multiple agents (Bob and Charlie), given that Alice, Bob, and Charlie
-share a system of three entangled qubits that can be placed in a cat-like state.
+share a system of three entangled qubits (:math:`\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle`) that can be placed in a cat-like state
+(:math:`\alpha|0000\rangle + \beta|1110\rangle`). 
 
-Protocol
---------
+Protocol and Circuit
+--------------------
 
 .. image:: ../img/cat-entangler.png
 
@@ -36,33 +37,40 @@ measurement result, that is passed via a classical channel and used to control t
 
 Usage
 -----
-netQuils implementation of the cat entangler requires that only one agent to initiate and execute the circuit.
-netQuil will transport the qubits between agents, update either clocks, and appropriately apply noise.
-If `notify=True` the cat entangler will send a classical bit to each participating agent (excluding the caller), notifying
-all parties that the entangler has finished. If `entangler=False` the cat_entangler will entangle
-the target qubits and the measurement qubit (i.e. a is the measurement qubit in the example) before performing the circuit. 
+NetQuil's implementation of the cat-entangler requires that only one agent initiate and execute the circuit.
+NetQuil will transport the qubits and cbits between agents, update their clocks, and appropriately apply noise.
+If `notify=True` the cat-entangler will send a classical bit to each participating agent (excluding the caller), notifying
+all parties that the entangler has finished. The caller is defined as the agent passed to the control. 
+If `entangler=False` the cat_entangler will entangle the target qubits and the measurement qubit 
+(i.e. a is the measurement qubit in the example) before performing the circuit. 
 
 .. code-block:: python
     :linenos:
 
     class Alice(Agent): 
+        '''
+        Alice initiates cat-entangler
+        '''
         def run(self):
             # Define Qubits
-            a, phi = self.qubits 
+            a, psi = self.qubits 
             b = bob.qubits[0]
             
             cat_entangler(
-                control=(self, phi, a, ro),
+                control=(self, psi, a, ro),
                 targets=[(bob, b)],
                 entangled=False,
                 notify=True
             )
 
     class Bob(Agent): 
+        '''
+        Bob waits to be notified that the cat-entangler has finished
+        '''
         def run(self):
-            # Measurement from cat entangler
+            # Measurement from cat-entangler
             self.crecv(alice.name)
-            # Notification that cat entangler is complete
+            # Notification that cat-entangler is complete
             self.crecv(alice.name)
     
     # In this example we omit the following...
@@ -82,7 +90,9 @@ Protocol
 .. image:: ../img/cat-disentangler.png
 
 The Z gate on the first wire is controlled by the exclusive-or (:math:`\oplus`) of the classical bits
-resulting from the measurements on qubits two and three.   
+resulting from the measurements on qubits two and three. If `notify=True` the cat-disentangler will send a classical bit 
+to each participating agent (excluding the caller), notifying all parties that the entangler has finished. 
+The caller is defined as the agent passed to the control. 
 
 Usage
 -----
@@ -92,19 +102,22 @@ Usage
 
     class Alice(Agent): 
         '''
-        Alice uses cat-entangler to perform distributed quantum teleportation
+        Alice initiates cat-disentangler 
         '''
         def run(self):
-            a, phi = self.qubits 
+            a, psi = self.qubits 
             b = bob.qubits[0]
 
             cat_disentangler(
-                control=(self, phi, ro),
+                control=(self, psi, ro),
                 targets=[(bob, b)],
                 notify=True
             )
 
     class Bob(Agent):
+        '''
+        Bob waits for cat-disentangler to finish
+        '''
         def run(self): 
             # Wait for cat-disentangler to finish
             self.crecv(alice.name)
@@ -113,9 +126,10 @@ Usage
 
 Non-local CNOT and Teleportation
 ================================
-Cat-entangler and cat-disentangler are primitive circuits that can be used 
+The cat-entangler and cat-disentangler are primitive circuits that can be used 
 to contruct non-local CNOT gates, non-local controlled gates and teleportation. 
-In fact, the controlled-NOT gate plus all one-qubit unitary gates is a universal set. Therefore, 
+In fact, it has been proven that the controlled-NOT gate, Hadamard gate, and \ang{45} phase gate together
+can be composed to create a universal quantum gate. Therefore, 
 in order to contruct a universal set of operators for DQC, we must only contruct a 
 non-local CNOT gate, which can be done with the cat-entangler and cat-disentangler. 
 
@@ -146,28 +160,33 @@ Here is an example of teleportation using the cat-entangler and cat-disentangler
     from netQuil import *
 
     class Alice(Agent): 
-        def teleportation(self, phi, a, b):
+        ''' 
+        Alice uses cat-entangler and cat-disentangler to teleport psi to Bob
+        '''
+        def teleportation(self, psi, a, b):
             cat_entangler(
-                control=(self, phi, a, ro),
+                control=(self, psi, a, ro),
                 targets=[(bob, b)],
                 entangled=False,
                 notify=False
             )
             cat_disentangler(
                 control=(bob, b, ro),
-                targets=[(self, phi)],
-                notify=False
+                targets=[(self, psi)],
             )
 
         def run(self):
             # Define Qubits
-            a, phi = self.qubits 
+            a, psi = self.qubits 
             b = bob.qubits[0]
 
             # Teleport
-            self.teleportation(phi, a, b)
+            self.teleportation(psi, a, b)
 
     class Bob(Agent): 
+        ''' 
+        Bob waits for teleportation to complete
+        '''
         def run(self):
             # Receive Measurement from Cat-entangler
             self.crecv(alice.name)
@@ -176,7 +195,7 @@ Here is an example of teleportation using the cat-entangler and cat-disentangler
 
     # Prepare psi
     p += H(2)
-    p += RZ(1.2, 2)
+    p += RZ(math.pi/2, 2)
 
     # Create Classical Memory
     ro = p.declare('ro', 'BIT', 3)
@@ -193,7 +212,8 @@ Here is an example of teleportation using the cat-entangler and cat-disentangler
 
 Source Code
 -----------
-The source code for the cat-entangler can be found `here <https://github.com/att-innovate/netQuil>`_. Contributions are encouraged! 
+The source code for the cat-entangler can be found `here <https://github.com/att-innovate/netQuil>`_ and contributions are encouraged. 
 To learn more about distributed quantum computing and the cat-like state checkout
-`this <https://arxiv.org/abs/quant-ph/0402148>`_ paper by Yimsiriwattana and Lomonaco.
+`this <https://arxiv.org/abs/quant-ph/0402148>`_ paper by Yimsiriwattana and Lomonaco. 
+To see why quantum security is so powerful, checkout our tutorial on the middle-man attack!
 
