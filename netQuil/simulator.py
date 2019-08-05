@@ -1,5 +1,6 @@
 import inspect
 from .clock import *
+import tqdm
 
 from pyquil import Program
 
@@ -29,6 +30,7 @@ class Simulation:
         Initialize the simulation
         '''
         self.agents = list(args)
+        self.pbars = {}
 
     def _create_agent_copies(self):
         '''
@@ -55,12 +57,17 @@ class Simulation:
 
         :param List<Agent> agent_classes: list of agent classes 
         '''
+        program_copy = None
         for indx, copy in enumerate(self.agent_copies): 
             # Create copy of agent
             new_agent = agent_classes[indx]()
             for k in copy:
                 try: 
                     setattr(new_agent, k, copy[k])
+                    if k == 'program' and program_copy == None:
+                        program_copy = copy[k].copy()
+                    if k == 'program': 
+                        setattr(new_agent, k, program_copy)
                 except: 
                     pass
             self.agents[indx] = new_agent
@@ -87,6 +94,19 @@ class Simulation:
             if agent.program == None: 
                 agent.program = p
 
+    def _network_monitor(self):
+        # Check is client is using jupyter notebooks
+        using_notebook = check_notebook()
+        if using_notebook:
+            for agent in self.agents: 
+                agent.pbar_recv = tqdm.tqdm_notebook(desc='Qubits received by {}'.format(agent.name), unit=' qubits')
+                agent.pbar_sent = tqdm.tqdm_notebook(desc='Qubits sent by {}'.format(agent.name), unit=' qubits')
+        else: 
+            for agent in self.agents:
+                agent.pbar_recv = tqdm.tqdm(desc='Qubits received by {}'.format(agent.name), unit=' qubits')
+                agent.pbar_sent = tqdm.tqdm(desc='Qubits sent by {}'.format(agent.name), unit=' qubits')
+
+
     def run(self, trials=1, agent_classes=[], network_monitor=False, verbose=False):
         '''
         Run the simulation
@@ -97,7 +117,6 @@ class Simulation:
         :param Boolean verbose: whether the network monitor should create an error summary
             for each network transaction.
         '''
-        # Check is client is using jupyter notebooks
         using_notebook = check_notebook()
 
         # If program is not set, add default
@@ -111,14 +130,17 @@ class Simulation:
             master_clock = MasterClock()
             for agent in self.agents:
                 agent.master_clock = master_clock
+                if network_monitor: self._network_monitor()
 
             for agent in self.agents:
-                agent._start_network_monitor(using_notebook, network_monitor)
+                # agent._start_network_monitor(using_notebook, network_monitor)
+                # print('before', agent.name, agent.program)
                 agent.start()
             
             for agent in self.agents: 
                 agent.join()
                 agent._stop_network_monitor()
+                # print('after', agent.name, agent.program)
 
             if verbose: 
                 master_clock.display_transactions()
@@ -126,5 +148,3 @@ class Simulation:
             if running_trials:
                 self._reset_devices()
                 self._reset_agents(agent_classes)
-
-

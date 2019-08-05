@@ -59,14 +59,14 @@ class Agent(threading.Thread):
         '''
             Starts tracking agent activity.
         '''
-        if network_monitor: 
-            self.network_monitor_running = True
-            if is_notebook:
-                self.pbar_recv = tqdm.tqdm_notebook(desc='Qubits received by {}'.format(self.name), unit=' qubits')
-                self.pbar_sent = tqdm.tqdm_notebook(desc='Qubits sent by {}'.format(self.name), unit=' qubits')
-            else: 
-                self.pbar_recv = tqdm.tqdm(desc='Qubits received by {}'.format(self.name), unit=' qubits')
-                self.pbar_sent = tqdm.tqdm(desc='Qubits sent by {}'.format(self.name), unit=' qubits')
+        # if network_monitor: 
+        #     self.network_monitor_running = True
+        #     if is_notebook:
+        #         self.pbar_recv = tqdm.tqdm_notebook(desc='Qubits received by {}'.format(self.name), unit=' qubits')
+        #         self.pbar_sent = tqdm.tqdm_notebook(desc='Qubits sent by {}'.format(self.name), unit=' qubits')
+        #     else: 
+        #         self.pbar_recv = tqdm.tqdm(desc='Qubits received by {}'.format(self.name), unit=' qubits')
+        #         self.pbar_sent = tqdm.tqdm(desc='Qubits sent by {}'.format(self.name), unit=' qubits')
         
         # start tracer
         threading.settrace(self._tracer)
@@ -83,9 +83,10 @@ class Agent(threading.Thread):
                 device.get_success()
  
     def update_network_monitor(self, qubits, bar):
+        # print(self.name, qubits, bar)
         for _ in qubits: 
             time.sleep(0.05)
-            bar.update(1)
+            bar.update()
 
     def _tracer(self, frame, event, arg):
         '''

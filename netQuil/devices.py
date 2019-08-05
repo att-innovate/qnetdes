@@ -62,10 +62,10 @@ class Fiber(Device):
         '''
         for qubit in qubits:
             if self.apply_error:
+                # print(program)
                 noise.measure(program, qubit, self.attenuation, "Fiber")
         delay = self.length/signal_speed
         return delay
-
 
 class Laser(Device):
     def __init__(self, pulse_length=10 * 10 ** -12, expected_photons=1.0, rotation_prob_variance=1.0, wavelength=1550, apply_error=True):
@@ -91,7 +91,6 @@ class Laser(Device):
         delay = self.pulse_length
         return delay
 
-
 class SNSPD(Device):
     def __init__(self,  apply_error=True):
         pass
@@ -99,19 +98,9 @@ class SNSPD(Device):
     def apply(self, program, qubits):
         pass
 
-
 class Intensity_Modulator(Device):
     def __init__(self, apply_error=True, Average_Photons=1.0):
         pass
-
         
     def apply(self, program, qubits):
         pass
-
-
-
-
-
-        
-
-    

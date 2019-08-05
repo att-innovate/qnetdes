@@ -103,9 +103,10 @@ def measure(program, qubit, prob: float, name="ro"):
     :param Integer qubit: qubit to apply noise to 
     :param Float prob: probability of apply noise 
     '''
-    if np.random.rand()> prob:
+    # if np.random.rand()> prob:
+    if 1 > prob:
 
-        #check if ro has been declared
+        #check if ro has been declared and update appropriately
         global ro_declared
         if not ro_declared:
             for inst in program.instructions:
@@ -115,10 +116,10 @@ def measure(program, qubit, prob: float, name="ro"):
                 except:
                     pass
 
+        if not ro_declared: 
             ro = program.declare("ro", 'BIT', 1)
             ro_declared = True
             program += MEASURE(qubit, ro)
-
         else: 
             ro = program.declare(name+str(uuid.uuid1().int), 'BIT', 1)
            

@@ -39,7 +39,6 @@ class QConnect:
                 if agentConnect != agent:
                     agent.qconnections[agentConnect.name] = self
 
-
     def put(self, source, target, qubits, source_time):
         ''' 
         Constructs full list of devices that each qubit must travel through. Sends the qubits
@@ -61,6 +60,7 @@ class QConnect:
         }
 
         program = self.agents[source].program
+        print(program)
         source_delay = 0
 
         if not source_devices:
@@ -130,7 +130,6 @@ class CConnect:
                     agent.cconnections[agentConnect.name] = self
 
         self.length = length
-       
 
     def put(self, target, cbits):
         ''' 
