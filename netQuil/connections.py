@@ -49,6 +49,7 @@ class QConnect:
         :param String target: name of agent receiving qubits
         :param Array qubits: array of numbers corresponding to qubits the source is sending 
         :param Float source_time: time of source agent before sending qubits
+        :returns: time qubits took to pass through source devices
         '''
         source_devices = self.source_devices[source]
         transit_devices = self.transit_devices[source]
@@ -60,7 +61,6 @@ class QConnect:
         }
 
         program = self.agents[source].program
-        print(program)
         source_delay = 0
 
         if not source_devices:
@@ -82,6 +82,7 @@ class QConnect:
         the time it took the qubit to travel through the network. 
 
         :param Agent agent: agent receiving the qubits 
+        :returns: list of qubits, time to pass through transit and target devices, and the source agent's time
         '''
         qubits, devices, source_delay, source_time = self.queues[agent.name].get()
         agent.qubits = list(set(qubits + agent.qubits))
@@ -137,6 +138,7 @@ class CConnect:
 
         :param String target: name of recipient of program
         :param Array cbits: array of numbers corresponding to cbits agent is sending
+        :returns: time for cbits to travel
         '''
         csource_delay = pulse_length_default * 8 * sys.getsizeof(cbits)
         self.queues[target].put((cbits, csource_delay))
@@ -147,6 +149,7 @@ class CConnect:
         Pops cbits off of the agent's queue and adds travel delay
 
         :param String agent: name of the agent receiving the cbits
+        :returns cbits from source and time they took to travel
         '''
         cbits, source_delay = self.queues[agent].get()
         travel_delay = self.length/signal_speed

@@ -59,8 +59,6 @@ def bit_flip(program, qubit, prob: float):
     
     program.define_noisy_gate("flipNOISE" + str(unique_id), [qubit], kraus_op_bit_flip(prob))
     program += ("flipNOISE" + str(unique_id), qubit)
-    
-    
 
 def phase_flip(program, qubit, prob: float):
     '''
