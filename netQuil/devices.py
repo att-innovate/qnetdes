@@ -31,7 +31,7 @@ class Device():
         :param Pyquil<Program> program: program to manipulate
         :param List qubits: list of qubits passing through device
         '''
-        pass
+        return {delay: None, qubits: None}
 
     def get_results(self):
         '''
@@ -67,14 +67,20 @@ class Fiber(Device):
 
         :param Program program: program to be modified
         :param List qubits: qubits being sent
-        :returns time qubits took to travel through fiber
+        :returns: time qubits took to travel through fiber
         '''
-        for qubit in qubits:
+        for i, qubit in enumerate(qubits):
+            if qubit < 0: continue
+
             if self.apply_error:
-                print(program)
-                noise.measure(program, qubit, self.attenuation, "Fiber")
+                qubits[i] = noise.measure(program, qubit, self.attenuation, "Fiber")
+                
         delay = self.length/signal_speed
-        return delay
+
+        return {
+            'delay': delay, 
+            'qubits': qubits
+        }
 
 class Laser(Device):
     def __init__(self, pulse_length=10 * 10 ** -12, expected_photons=1.0, rotation_prob_variance=1.0, wavelength=1550, apply_error=True):
@@ -99,6 +105,8 @@ class Laser(Device):
         :returns: time it took qubits to pass through device
         '''
         for qubit in qubits:
+            if qubit < 0: continue
+
             if self.apply_error:
                 numPhotons = np.random.poisson(lam=self.photon_expectation)
                 self.trials += len(qubits)
@@ -108,7 +116,9 @@ class Laser(Device):
                 noise.normal_unitary_rotation(program, qubit, 0.5, self.variance)
                 '''
         delay = self.pulse_length
-        return delay
+        return {
+            'delay': delay
+        }
 
     def get_results(self):
         try: 

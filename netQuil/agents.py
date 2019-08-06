@@ -89,7 +89,7 @@ class Agent(threading.Thread):
                 qubits = [q for q in argValues if type(q) == int]
                 # Check that qubits are a subset of the Agent's qubits
                 if not all(q in self.qubits for q in qubits):
-                    raise Exception('Agent cannot modify qubits they do not own')
+                    raise Exception('Agent cannot modify qubits they do not own (including qubits that have been lost)')
 
         return self._tracer
     

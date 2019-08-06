@@ -67,7 +67,9 @@ class QConnect:
             source_delay += pulse_length_default
         else:
             for device in source_devices:
-                source_delay += device.apply(program, qubits)
+                res = device.apply(program, qubits)
+                if 'qubits' in res.keys(): qubits = res['qubits']
+                if 'delay' in res.keys(): source_delay += res['delay']
 
         # Scale source delay time according to number of qubits sent
         scaled_source_delay = source_delay*len(qubits) 
@@ -98,9 +100,14 @@ class QConnect:
             travel_delay += fiber_length_default/signal_speed
         if not target_devices:
             travel_delay += 0
-          
+        
+        new_qubits = None
         for device in list(itertools.chain(transit_devices, target_devices)):
-            travel_delay += device.apply(program, qubits)  
+            res = device.apply(program, qubits)
+            if 'qubits' in res.keys(): new_qubits = res['qubits']
+            if 'delay' in res.keys(): travel_delay += res['delay']
+
+        agent.qubits = list(set(agent.qubits) - set(qubits)) + new_qubits
 
         scaled_delay = travel_delay*len(qubits) + source_delay
         return qubits, scaled_delay, source_time
@@ -110,7 +117,7 @@ class CConnect:
         '''
         This is the base class for a classical connection between multiple agents. 
 
-        :param agents \*args, list of agents to connect
+        :param agents \*args: list of agents to connect
         :param Float length: distance between first and second agent
         '''
         agents = list(args)
@@ -149,7 +156,7 @@ class CConnect:
         Pops cbits off of the agent's queue and adds travel delay
 
         :param String agent: name of the agent receiving the cbits
-        :returns cbits from source and time they took to travel
+        :returns: cbits from source and time they took to travel
         '''
         cbits, source_delay = self.queues[agent].get()
         travel_delay = self.length/signal_speed

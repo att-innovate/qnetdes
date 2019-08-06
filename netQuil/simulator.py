@@ -112,6 +112,8 @@ class Simulation:
         Stop progress bars and break source devices noise to signal ratios
         ''' 
         if agent.network_monitor_running: 
+            import time
+            time.sleep(1)
             agent.pbar_recv.close()
             agent.pbar_sent.close()
 
