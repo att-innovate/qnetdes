@@ -156,7 +156,7 @@ from a normal distribution.
 NetQuil also has a built-in noise module for performing common qubit operations such as normal 
 unitary rotations, depolarization, and phase flips.
 
-Multiple Trials
+Trials and Time
 ===============
 In some situation, pyQuil programs generated between trials will be different depending 
 on noise or the dynamic nature of your network. In order to accomodate this, ``Simulation().run()`` will always return a list of 
