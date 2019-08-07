@@ -7,7 +7,9 @@ Middle-Man Attack
 Middle-Man Attack is a demonstration of quantum networks resistance against intruders. This demo 
 extends :ref:`superdense coding <superdense-coding>` by allowing two agents, Alice and Bob, to send 
 numerous classical bits using bell state pairs. However, in this protocol, there is an intruder agent,
-Eve, who attempts to interecept and measure the information. 
+Eve, who attempts to interecept and measure the information. Despite successfully intercepting Alice 
+and Bob's message, due to Eve not sharing a bell state pair with Alice, Eve only measures random noise
+while Bob is able to detect an intruder has intercepted the message.
 
 Protocol
 =========================================================
@@ -18,7 +20,7 @@ where Alice operates on her bell state pair from Charlie based on the classical 
 she wishes to send to Bob, and then sends her bell state pair to Bob. This process can be repeated
 for any number of classical bits that Alice wishes to send. 
 
-The attack occurs when Eve intercepts the Alice's qubits on the way to Bob, measures the qubits, 
+The attack occurs when Eve intercepts Alice's qubits on the way to Bob, measures the qubits, 
 and re-transmits them to Bob. Due to Eve not having a bell state pair and her measurement collapsing
 the state of the qubit, Eve only intercepts random noise, while Bob can immediately detect the 
 presence of an intruder. 
@@ -29,7 +31,7 @@ Circuit
 
 Steps 
 ----------------------------------------
-1. Charlie creates Bell State Pair using a Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate,
+1. Charlie creates a bell state pair using a Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate,
 :math:`|AB\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) `, sending qubit :math:`A` to Alice and qubit :math:`B` to Bob. 
 
 2. Alice operates on her qubit based on the classical bits she wants to send to Bob. If her first classical 
@@ -60,7 +62,7 @@ Import Dependencies
 
 Setup Agents 
 ----------------------------------------
-Let us first define Agent Charlie who creates and distributes the bell state pair to Alice and Bob repeated for the 
+Let us first define agent Charlie who creates and distributes the bell state pair to Alice and Bob repeated for the 
 number of classical bits that Alice wishes to send. We can extend the Agent classes and redefine our 
 :math:`\textit{run()}` methods. To create our bell state pair, he can use a
 Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate from pyquil. Then,
@@ -80,9 +82,9 @@ using netQuil, we want to distribute each qubit to Alice and Bob.
             self.qsend(alice.name, [i])
             self.qsend(bob.name, [i+1])
 
-Now, we will create Agent Alice, Eve, and Bob. Alice will operate on her bell state pair from Charlie based on the
+Now, we will create agent Alice, Eve, and Bob. Alice will operate on her bell state pair from Charlie based on the
 classical bits she wishes to send to Bob. Then, she will send her qubit to Bob, but unknowingly the qubit
-is intercepted by Agent Eve. Eve is an intruder, and simply measures the intercepted information, before retransmitting
+is intercepted by Eve. Eve is an intruder, and simply measures the intercepted information, before retransmitting
 the qubit on to the target agent, Bob. Bob will then convert back to the computational basis using a 
 Controlled-Not (:math:`\textbf{CNOT}`) and a Hadamard (:math:`\textbf{H}`) gate and measure each qubit
 from Charlie and Alice, with Alice's qubit tampered with by Eve.
@@ -153,7 +155,7 @@ and Bob's measurements, which are stored together in 'ro'.
     program = Program()
     ro = program.declare('ro', 'BIT', 2*len(img_bits))
 
-Now, we can create our agents, giving charlie control over all the qubits, alice the image as
+Now, we can create our agents, giving Charlie control over all the qubits, Alice the image as
 her classical memory, and passing each agent their shared pyQuil program to run our demo. For 
 convenience, we will also give Eve and Bob individual lists to store their individual results.
 
@@ -244,16 +246,17 @@ does not share a bell state pair with Alice, she only measures random noise. Fur
 collapse the qubits before Bob measures them giving him only half of the information and alerting him
 to an intruder.
 
-This will be included once the demo is done:
-.. image:: ../images/Circuits/middle-man-demo.png
+.. image:: ../images/middle-man-demo.png
 
 Extend Simulation
 ----------------------------------------
-You have now created a program to simulate a middle man attack! You are able to send simulate an intruder
+You have now created a program to simulate a middle man attack! You are able to simulate an intruder
 trying to intercept qubits of information. Can you extend this demo to include quantum error correction, 
 a smarter intruder, or even devices with realistic noise?
 
 Source Code
 =========================================================
-The source code for this demo is included in the demos directory of the netQuil repository.
+The source code for the middle-man attack demo can be found `here <https://github.com/att-innovate/netQuil>`_ and contributions are encouraged. 
 
+To learn more about distributed quantum computing, checkout our distributed protocols tutorial to learn how you can 
+perform distributed quantum computation easily using the cat-entangler and cat-disentangler. 

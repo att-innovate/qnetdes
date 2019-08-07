@@ -27,7 +27,7 @@ Circuit
 
 Steps 
 ----------------------------------------
-1. Charlie creates bell state pair using a Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate,
+1. Charlie creates a bell state pair using a Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate,
 :math:`|AB\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) `, sending qubit :math:`A` to Alice and qubit :math:`B` to Bob. 
 
 2. Alice projects her arbitrary quantum state :math:`|\psi\rangle = \alpha |0\rangle + \beta |1\rangle` onto qubit :math:`A` using a Controlled-Not (:math:`\textbf{CNOT}`) and 
@@ -60,7 +60,7 @@ Import Dependencies
 
 Setup Agents 
 ----------------------------------------
-Let us first define Agent Charlie who creates and distributes the bell state pair to Alice and Bob. We can extend the Agent
+Let us first define agent Charlie who creates and distributes the bell state pair to Alice and Bob. We can extend the Agent
 classes and redefine our :math:`\textit{run()}` methods. To create our bell state pair, he can use a
 Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate from pyquil. Then,
 using netQuil, we want to send each qubit to Alice and Bob.
@@ -80,7 +80,7 @@ using netQuil, we want to send each qubit to Alice and Bob.
         self.qsend(alice.name, [0])
         self.qsend(bob.name, [1])
 
-Now, we will create Agent Alice and Agent Bob. Alice will project her state :math:`|\psi\rangle = \alpha |0\rangle + \beta |1\rangle` onto her 
+Now, we will create agent Alice and agent Bob. Alice will project her state :math:`|\psi\rangle = \alpha |0\rangle + \beta |1\rangle` onto her 
 bell state pair. Then, she will measure her two qubits, and send the results to Bob, which Bob will use to recreate Alice's original state
 :math:`|\psi\rangle = \alpha |0\rangle + \beta |1\rangle` with his bell state pair.
 
@@ -153,7 +153,7 @@ in order to make the bell state pair, while Alice has qubit 2, representing stat
     CConnect(alice, bob)
 
     # Run simulation
-    Simulation(alice, bob, charlie).run(trials=1, agent_classes=[Alice, Bob, Charlie])
+    Simulation(alice, bob, charlie).run()
     qvm = QVMConnection()
     qvm.run(p)
 
@@ -184,5 +184,7 @@ a classical channel quantum bit. It is now time to get creative. Add noise, add 
 
 Source Code
 =========================================================
-The source code for this demo is included in the demos directory of the netQuil repository.
+The source code for the quantum teleportation demo can be found `here <https://github.com/att-innovate/netQuil>`_ and contributions are encouraged. 
+
+To learn about distributed quantum computing and follow more demos, check out the netQuil white paper! 
 

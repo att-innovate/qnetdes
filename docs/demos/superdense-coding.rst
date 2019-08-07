@@ -25,7 +25,7 @@ Circuit
 
 Steps 
 ----------------------------------------
-1. Charlie creates bell state pair using a Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate,
+1. Charlie creates a bell state pair using a Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate,
 :math:`|AB\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) `, sending qubit :math:`A` to Alice and qubit :math:`B` to Bob. 
 
 2. Alice operates on her qubit based on the classical bits she wants to send to Bob. If her first classical 
@@ -60,8 +60,8 @@ Import Dependencies
 
 Setup Agents 
 ----------------------------------------
-Let us first define Agent Charlie who creates and distributes the bell state pair to Alice and Bob. We can extend the Agent
-classes and redefine our :math:`\textit{run()}` methods. To create our bell State Pair, he can use a
+Let us first define agent Charlie who creates and distributes the bell state pair to Alice and Bob. We can extend the agent
+classes and redefine our :math:`\textit{run()}` methods. To create our bell state pair, he can use a
 Hadamard (:math:`\textbf{H}`) and Controlled-Not (:math:`\textbf{CNOT}`) gate from pyquil. Then,
 using netQuil, we want to distribute each qubit to Alice and Bob.
 
@@ -80,7 +80,7 @@ using netQuil, we want to distribute each qubit to Alice and Bob.
         self.qsend(alice.name, [0])
         self.qsend(bob.name, [1])
 
-Now, we will create Agent Alice. Alice will operate on her bell state pair from Charlie based on the
+Now, we will create agent Alice. Alice will operate on her bell state pair from Charlie based on the
 classical bits she wishes to send to Bob and send her qubit to Bob. Bob will then convert back to the computational basis using a 
 Controlled-Not (:math:`\textbf{CNOT}`) and a Hadamard (:math:`\textbf{H}`) gate. Finally, Bob will measure each qubit
 from Charlie and Alice to recreate Alice's two classical bits. 
@@ -153,7 +153,7 @@ in order to make the bell state pair, and Alice's classical memory, :math:`\text
     QConnect(alice, bob, charlie)
 
     # Simulate Agents
-    Simulation(alice,charlie,bob).run(trials=1, agent_classes=[Alice, Charlie, Bob])
+    Simulation(alice,charlie,bob).run()
     qvm = QVMConnection()
     results = qvm.run(program)
 
@@ -189,4 +189,6 @@ quantum bit. It is now time to get creative. Add noise, add extra agents, or add
 
 Source Code
 =========================================================
-The source code for this demo is included in the demos directory of the netQuil repository.
+The source code for superdense coding demo can be found `here <https://github.com/att-innovate/netQuil>`_ and contributions are encouraged. 
+
+To learn about distributed quantum computing and follow more demos, check out the netQuil white paper!

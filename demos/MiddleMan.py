@@ -75,7 +75,7 @@ def plot_images(eve_bits, bob_bits, alice_bit):
     eve_img = np.reshape(np.packbits(eve_bits), (int(alice_bit.shape[0]/2), alice_bit.shape[1], alice_bit.shape[2]))
     bob_img = np.reshape(np.packbits(bob_bits), alice_bit.shape)
     f, ax = plt.subplots(1, 3, figsize = (18, 9))
-    ax[0].imshow(alice_img)
+    ax[0].imshow(alice_bit)
     ax[0].axis('off')
     ax[0].title.set_text("Alice's image")
     ax[1].imshow(eve_img)
@@ -137,7 +137,7 @@ while end <= len(img_bits):
     print("simulated: ", i)
         
 
-plot_alice_bob_eve_images(resultsEve, resultsBob, img)
+plot_images(resultsEve, resultsBob, img)
 
 wf_sim = WavefunctionSimulator()
 resultWF = wf_sim.wavefunction(program)
