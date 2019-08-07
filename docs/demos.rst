@@ -8,3 +8,4 @@ Demos
    demos/quantum-teleportation
    demos/superdense-coding
    demos/advanced-usage
+   demos/distributed-protocol
