@@ -31,7 +31,7 @@ devices.
 Built-in Devices
 ================
 ``Laser`` is a built-in noisy photon source that generates photons according to ``expected_photons`` and a poisson 
-distribution. If ``verbose=True`` the laser will output its noise to signal ratio after each trial. You can create a custom ``get_results`` function that prints
+distribution. If ``network_monitor=True`` the laser will output its noise to signal ratio after each trial. You can create a custom ``get_results`` function that prints
 information about the device after each trial. The ``Laser`` will also return a delay equal to the photon
 pulse length. 
 
@@ -41,7 +41,7 @@ equal to the probability that a photon is lost while traveling within the fiber 
 and the measured value is inaccessible by any agent). In netQuil, if a qubit is lost due to attenuation, the 
 target will receive the negative of the qubit lost. For example, if Alice sends qubit 3 and it is
 lost due to attenuation, Bob will receive -3, and neither Alice nor Bob will be able to operate with
-qubit 3. 
+qubit 3. The qubit lost is 0 then the value will be set to -inf. 
 
 Here is an example of a very simple program using the ``Laser`` and ``Fiber`` devices. 
 
@@ -61,9 +61,9 @@ Here is an example of a very simple program using the ``Laser`` and ``Fiber`` de
             p = self.program
             for i in range(3):
                 q = self.qrecv(alice.name)[0]
-                if q < 0:
-                    print('Qubit {} lost'.format(i))
-                else: 
+
+                # Check if qubit is lost
+                if q >= 0:
                     p += MEASURE(q, ro[q])
 
     p = Program()
@@ -72,14 +72,18 @@ Here is an example of a very simple program using the ``Laser`` and ``Fiber`` de
     alice = Alice(p, qubits=[0,1,2])
     bob = Bob(p)
 
+    # Define source device
     laser = Laser(rotation_prob_variance=.9)
     alice.add_source_devices([laser])
 
+    # Define transit device and connection
     fiber = Fiber(length=5, attenuation_coefficient=-.90)
     QConnect(alice, bob, transit_devices=[fiber])
 
+    # Run simulation
     Simulation(alice, bob).run()
 
+    # Run program
     qvm = QVMConnection()
     results = qvm.run(p)
     print(results) 
@@ -88,9 +92,9 @@ Custom Devices
 ==============
 Moreover, you can build your own custom devices by extending the ``Device`` class. All devices must have
 an ``apply`` function that is responsible for the device's activity. The ``run`` function must return a 
-dictionary that optionally contains the qubits and delay. The delay represents the time it took qubits to 
-travel through the device. Remember to switch the sign of a qubit if it is lost during transmission, as well as 
-add the list of qubits to the dictionary that is returned.
+dictionary that optionally contains the lost qubits and delay. The delay represents the time it took qubits to 
+travel through the device. Remember, if qubits are lost while passing through the device, return an entry in the dictionary 
+``lost_qubits: [lost qubits]``.
 
 Most devices can be arbitrarily complex in their design and can depend on environmental factors such 
 as temperature, humidity, or other stressors. Custom devices allow use to simulate these arbitrarily complex devices.
@@ -117,7 +121,6 @@ from a normal distribution.
 
             return {
                 'delay': delay,
-                'qubits': qubits
             }
 
     class Alice(Agent):
@@ -141,13 +144,14 @@ from a normal distribution.
     alice = Alice(p, qubits=[0,1,2])
     bob = Bob(p)
 
+    # Define source device
     laser = Laser(rotation_prob_variance=.9)
     alice.add_source_devices([laser])
 
     fiber = Simple_Fiber(length=10, fiber_quality=.6, rotation_std=5)
     QConnect(alice, bob, transit_devices=[fiber])
 
-    Simulation(alice, bob).run()
+    Simulation(alice, bob).run(network_monitor=True)
 
     qvm = QVMConnection()
     results = qvm.run(p)
@@ -165,7 +169,7 @@ into ``Simulation().run(trials=5)``, as well as a list containing the class of e
 pass ``agent_classes`` (``Simulation(alice, bob).run(trials=5, agent_classes=[Alice, Bob]``), since this
 is required in order to reset the agents between trials. 
 
-You can also pass ``verbose=True`` to ``run`` in order to see a list of transactions on the network, the time of each transaction, 
+You can also pass ``network_monitor=True`` to ``run`` in order to see a list of transactions on the network, the time of each transaction, 
 and information about your devices. In addition to individual agent clocks, a master clock running throughout the network
 simulation that can be accessed through ``agent.get_master_time()`` on any agent. If you are implementing 
 `time-bin encoding <https://en.wikipedia.org/wiki/Time-bin_encoding>`_ or one of its variation, we encourage you to 
@@ -183,8 +187,7 @@ experiment with the master and agent clocks.
 
         def apply(self, program, qubits):
             for qubit in qubits: 
-                if qubit < 0: continue
-
+                # Apply noise
                 if np.random.rand() > self.fiber_quality:
                     rotation_angle = np.random.normal(0, self.rotation_std)
                     program += RX(rotation_angle, qubit)
@@ -193,7 +196,6 @@ experiment with the master and agent clocks.
 
             return {
                 'delay': delay,
-                'qubits': qubits
             }
 
     class Alice(Agent):
@@ -202,13 +204,15 @@ experiment with the master and agent clocks.
             for q in self.qubits:
                 p += H(q)
                 p += X(q)
-                self.qsend('Bob', [q])
+                self. qsend('Bob', [q])
 
     class Bob(Agent):
         def run(self):
             p = self.program
             for _ in range(3): 
                 q = self.qrecv(alice.name)[0]
+
+                # Check if qubit is lost
                 if q >= 0: 
                     p += MEASURE(q, ro[q])
 
@@ -218,15 +222,19 @@ experiment with the master and agent clocks.
     alice = Alice(p, qubits=[0,1,2])
     bob = Bob(p)
 
+    # Define source device
     laser = Laser(rotation_prob_variance=.9) 
     alice.add_source_devices([laser])
 
+    # Define transit devices and connection
     custom_fiber = Simple_Fiber(length=5, fiber_quality=.6, rotation_std=5)
     fiber = Fiber(length=5, attenuation_coefficient=-.20) 
     QConnect(alice, bob, transit_devices=[fiber, custom_fiber])
 
-    programs = Simulation(alice, bob).run(trials=10, agent_classes=[Alice, Bob], verbose=False) 
+    # Run simulation
+    programs = Simulation(alice, bob).run(trials=5, agent_classes=[Alice, Bob]) 
 
+    # Run programs
     qvm = QVMConnection()
     for idx, program in enumerate(programs): 
         results = qvm.run(program)

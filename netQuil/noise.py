@@ -11,7 +11,7 @@ from pyquil.noise import pauli_kraus_map
 
 __all__ = ["bit_flip", "phase_flip", "depolarizing_noise", "measure","normal_unitary_rotation"]
 
-ro_declared = False
+ro = None
 
 def kraus_op_bit_flip(prob: float):
     noisy_I = np.sqrt(1-prob) * np.asarray([[1, 0], [0, 1]])
@@ -93,36 +93,38 @@ def depolarizing_noise(program, qubit, prob: float):
     program.define_noisy_gate("dpNOISE" + str(unique_id), [qubit], kraus_op_depolarizing_channel(prob))
     program += ("dpNOISE" + str(unique_id), qubit)
 
-def measure(program, qubit, prob: float, name="ro"):
+def measure(program, qubit, prob: float, name):
     '''
     Measure the qubit with probability
 
     :param Program program: program to apply noise to
     :param Integer qubit: qubit to apply noise to 
     :param Float prob: probability of apply noise 
+    :param String name: name of quil classical register to measure to.
+    :returns: None if qubit is not measured and qubit if qubit is measured
     '''
     if np.random.rand()> prob:
-        #check if ro has been declared and update appropriately
-        global ro_declared
-        if not ro_declared:
-            for inst in program.instructions:
-                try:
-                    if inst.name == "ro":
-                        ro_declared = True
-                except:
-                    pass
+        global ro
 
-        if not ro_declared: 
+        devices_ro_exists = False
+        ro_exists = False
+        for inst in program.instructions: 
+            try: 
+                if inst.name == name:
+                    devices_ro_exists = True
+                elif inst.name == "ro":
+                    ro_exists = True
+            except: pass
+
+        if not ro_exists:
             ro = program.declare("ro", 'BIT', 1)
-            ro_declared = True
-        else: 
-            ro = program.declare(name+str(uuid.uuid1().int), 'BIT', 1)
+        elif ro_exists and not devices_ro_exists:
+            ro = program.declare(name, 'BIT', 1)
 
         program += MEASURE(qubit, ro)
-        qubit *= -1
+        return qubit
+    return None
 
-    return qubit
-           
 def normal_unitary_rotation(program, qubit, prob:float, variance):
     '''
     Apply X and Z rotation with probability

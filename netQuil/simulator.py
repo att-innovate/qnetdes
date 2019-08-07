@@ -96,36 +96,13 @@ class Simulation:
             if agent.program == None: 
                 agent.program = p
 
-    def _start_network_monitor(self, agent, position):
-        position *= 2
-        # Check is client is using jupyter notebooks
-        agent.network_monitor_running = True
-        if self.using_notebook:
-            agent.pbar_recv = tqdm.tqdm_notebook(desc='Qubits received by {}'.format(agent.name), unit=' qubits')
-            agent.pbar_sent = tqdm.tqdm_notebook(desc='Qubits sent by {}'.format(agent.name), unit=' qubits')
-        else: 
-            agent.pbar_recv = tqdm.tqdm(desc='Qubits received by {}'.format(agent.name), unit=' qubits', leave=True)
-            agent.pbar_sent = tqdm.tqdm(desc='Qubits sent by {}'.format(agent.name), unit=' qubits', leave=True)
-
-    def _stop_network_monitor(self, agent): 
-        '''
-        Stop progress bars and break source devices noise to signal ratios
-        ''' 
-        if agent.network_monitor_running: 
-            import time
-            time.sleep(1)
-            agent.pbar_recv.close()
-            agent.pbar_sent.close()
-
-    def run(self, trials=1, agent_classes=[], network_monitor=False, verbose=False):
+    def run(self, trials=1, agent_classes=[], network_monitor=False):
         '''
         Run the simulation
 
         :param Int trials: number of times to simulate program
         :param List<Agent> agent_classes: list of agent classes
-        :param Boolean network_monitor: whether to start a network monitor 
-        :param Boolean verbose: whether the network monitor should create an error summary
-            for each network transaction.
+        :param Boolean network_monitor: outputs each network transaction and device information
         :returns: Returns list of programs. One for each trial
         '''
         self.using_notebook = check_notebook()
@@ -148,17 +125,14 @@ class Simulation:
 
             # Start agents, tracer, and network monitor
             for idx, agent in enumerate(self.agents):
-                if network_monitor: self._start_network_monitor(agent, idx)
                 agent._start_tracer()
                 agent.start()
 
             # Wait for agents to finish 
             for agent in self.agents: 
                 agent.join()
-                if network_monitor: self._stop_network_monitor(agent)
 
-
-            if verbose: 
+            if network_monitor: 
                 agent._get_device_results()
                 master_clock.display_transactions()
 

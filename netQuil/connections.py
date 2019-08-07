@@ -66,15 +66,34 @@ class QConnect:
         if not source_devices:
             source_delay += pulse_length_default
         else:
+            # Keep track of qubits lost by each device
+            total_lost_qubits = []
+            # Keep track of qubits remaining
+            traveling_qubits = qubits
             for device in source_devices:
-                res = device.apply(program, qubits)
-                if 'qubits' in res.keys(): qubits = res['qubits']
-                if 'delay' in res.keys(): source_delay += res['delay']
+                # If qubits are still remaining 
+                if traveling_qubits:
+                    res = device.apply(program, traveling_qubits)
+                    if 'lost_qubits' in res.keys(): 
+                        lost_qubits = res['lost_qubits']
+                        # Remove lost qubits from traveling qubits
+                        traveling_qubits = list(set(traveling_qubits) - set(lost_qubits))
+                        # Add lost_qubits lost from current device to total_lost_qubits
+                        total_lost_qubits += lost_qubits
+                    if 'delay' in res.keys(): source_delay += res['delay']
+
+                else: break
+
+            # Invert lost qubits and add to traveling qubits
+            for q in total_lost_qubits: 
+                if q == 0: total_lost_qubits.append(float("-inf"))
+                else: total_lost_qubits.append(-q)
+            traveling_qubits += total_lost_qubits
 
         # Scale source delay time according to number of qubits sent
         scaled_source_delay = source_delay*len(qubits) 
 
-        self.queues[target].put((qubits, non_source_devices, scaled_source_delay, source_time))
+        self.queues[target].put((traveling_qubits, non_source_devices, scaled_source_delay, source_time))
         return scaled_source_delay
 
     def get(self, agent): 
@@ -86,31 +105,54 @@ class QConnect:
         :param Agent agent: agent receiving the qubits 
         :returns: list of qubits, time to pass through transit and target devices, and the source agent's time
         '''
-        qubits, devices, source_delay, source_time = self.queues[agent.name].get()
-        agent.qubits = list(set(qubits + agent.qubits))
+        traveling_qubits, devices, source_delay, source_time = self.queues[agent.name].get()
+
+        agent.qubits = list(set(traveling_qubits + agent.qubits))
 
         program = self.agents[agent.name].program
        
         transit_devices = devices["transit"]
         target_devices = devices["target"]
 
+        # Number of qubits before any are lost 
+        num_travel_qubits = len(traveling_qubits)
         travel_delay = 0
-        #default delays
+
         if not transit_devices:
             travel_delay += fiber_length_default/signal_speed
         if not target_devices:
             travel_delay += 0
         
-        new_qubits = None
+        total_lost_qubits = [q for q in traveling_qubits if q < 0 or q == float("-inf")] 
+        remaining_qubits = [q for q in traveling_qubits if q >= 0]
+
         for device in list(itertools.chain(transit_devices, target_devices)):
-            res = device.apply(program, qubits)
-            if 'qubits' in res.keys(): new_qubits = res['qubits']
-            if 'delay' in res.keys(): travel_delay += res['delay']
+            # If qubits are remaining 
+            if remaining_qubits: 
+                res = device.apply(program, traveling_qubits)
+                if 'lost_qubits' in res.keys(): 
+                    lost_qubits = res['lost_qubits']
+                    # Remove lost qubits from traveling qubits
+                    remaining_qubits = list(set(remaining_qubits) - set(lost_qubits))
+                    # Add lost_qubits lost from current device to total_lost_qubits
+                    total_lost_qubits += lost_qubits
+                if 'delay' in res.keys(): travel_delay += res['delay']
+            else: break
 
-        agent.qubits = list(set(agent.qubits) - set(qubits)) + new_qubits
+        # Remove traveling_qubits
+        agent.qubits = list(set(agent.qubits) - set(traveling_qubits))   
 
-        scaled_delay = travel_delay*len(qubits) + source_delay
-        return qubits, scaled_delay, source_time
+        lost_qubits_flipped = []
+        for q in total_lost_qubits: 
+            if q == 0: lost_qubits_flipped.append(float("-inf"))
+            else:
+                lost_qubits_flipped.append(-q)
+
+        # Add inverted lost qubits to remaining qubits
+        traveling_qubits = remaining_qubits + lost_qubits_flipped
+        agent.qubits += traveling_qubits
+        scaled_delay = travel_delay*num_travel_qubits + source_delay
+        return traveling_qubits, scaled_delay, source_time
 
 class CConnect: 
     def __init__(self, *args, length=0.0):

@@ -69,17 +69,20 @@ class Fiber(Device):
         :param List qubits: qubits being sent
         :returns: time qubits took to travel through fiber
         '''
+        lost_qubits = []
         for i, qubit in enumerate(qubits):
             if qubit < 0: continue
 
             if self.apply_error:
-                qubits[i] = noise.measure(program, qubit, self.attenuation, "Fiber")
+                q = noise.measure(program, qubit, self.attenuation, "Fiber")
+                if q is not None: 
+                    lost_qubits.append(q)
                 
         delay = self.length/signal_speed
 
         return {
             'delay': delay, 
-            'qubits': qubits
+            'lost_qubits': lost_qubits
         }
 
 class Laser(Device):
