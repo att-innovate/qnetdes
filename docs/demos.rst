@@ -7,5 +7,6 @@ Demos
 .. toctree::
    demos/quantum-teleportation
    demos/superdense-coding
-   demos/advanced-usage
+   demos/middle-man
    demos/distributed-protocol
+   demos/advanced-usage
