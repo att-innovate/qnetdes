@@ -51,7 +51,7 @@ class Agent(threading.Thread):
 
     def get_master_time(self): 
         '''
-        :returns: master time
+        :return: master time
         '''
         return self.master_clock.get_time()
 
@@ -209,7 +209,7 @@ class Agent(threading.Thread):
         add time delay. Return qubits
         
         :param String source: name of Agent where qubits are from. 
-        :returns: list of qubits sent from source
+        :return: list of qubits sent from source
         '''
         connection = self.qconnections[source]
         qubits, delay, source_time = connection.get(self)
@@ -243,7 +243,7 @@ class Agent(threading.Thread):
         Get cbits from source. 
         
         :param String source: name of Agent where cbits originated from.
-        :returns: list of cbits sent from source
+        :return: list of cbits sent from source
         '''
         connection = self.cconnections[source]
         cbits, delay = connection.get(self.name)

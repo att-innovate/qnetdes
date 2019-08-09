@@ -67,7 +67,7 @@ class Fiber(Device):
 
         :param Program program: program to be modified
         :param List qubits: qubits being sent
-        :returns: time qubits took to travel through fiber
+        :return: time qubits took to travel through fiber
         '''
         lost_qubits = []
         for i, qubit in enumerate(qubits):
@@ -105,7 +105,7 @@ class Laser(Device):
         Applies laser effect to qubits
         :param Program program: global program
         :param List<int> qubits: list of qubits going through laser
-        :returns: time it took qubits to pass through device
+        :return: time it took qubits to pass through device
         '''
         for qubit in qubits:
             if qubit < 0: continue

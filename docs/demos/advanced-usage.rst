@@ -21,7 +21,7 @@ qubits to pass through the device.
 There are three types of devices in netQuil: source, transit, and target devices. Source and target devices
 are associated with an agent, while transit devices are associated with instances of``QConnection``. When a qubit
 leaves Alice and travels to Bob, the qubit originates from Alice's source devices, travels through the
-transit devices attached to their ``QConnection`` and ends by hitting Bob's target devices. The
+transit devices attached to their ``QConnection`` and ends by arriving through Bob's target devices. The
 order in which a qubit passes through each device corresponds to the order in which those devices
 were added to either the agent or connection.  
 
@@ -37,11 +37,12 @@ pulse length.
 
 ``Fiber`` is a built-in noisy fiber optical wire simulator and an example of a transit device. Fibers
 have an associated length in kilometers and an attenutation coefficient. The attenuation coefficient is 
-equal to the probability that a photon is lost while traveling within the fiber (i.e. the photon is measured, 
+proportional to the probability that a photon is lost while traveling within the fiber (i.e. the photon is measured, 
 and the measured value is inaccessible by any agent). In netQuil, if a qubit is lost due to attenuation, the 
-target will receive the negative of the qubit lost. For example, if Alice sends qubit 3 and it is
+target will receive the negative index of the qubit lost. For example, if Alice sends qubit 3 and it is
 lost due to attenuation, Bob will receive -3, and neither Alice nor Bob will be able to operate with
-qubit 3. The qubit lost is 0 then the value will be set to -inf. 
+qubit 3. The qubit lost is 0 then the value will be set to -inf. Remember that when we send qubits between agents
+we are sending the index of the qubit in the program and not true qubit. 
 
 Here is an example of a very simple program using the ``Laser`` and ``Fiber`` devices. 
 
@@ -158,11 +159,11 @@ from a normal distribution.
     print(results)
 
 NetQuil also has a built-in noise module for performing common qubit operations such as normal 
-unitary rotations, depolarization, and phase flips.
+unitary rotations, depolarization, and bit and phase flips.
 
 Trials and Time
 ===============
-In some situation, pyQuil programs generated between trials will be different depending 
+In some situations, pyQuil programs generated between trials will be different depending 
 on noise or the dynamic nature of your network. In order to accomodate this, ``Simulation().run()`` will always return a list of 
 programs (i.e. one program per trial) that can be run on your qvm. Pass the number of trials you would like to run
 into ``Simulation().run(trials=5)``, as well as a list containing the class of each agent being run. Do `NOT` forget to 

@@ -103,7 +103,7 @@ class Simulation:
         :param Int trials: number of times to simulate program
         :param List<Agent> agent_classes: list of agent classes
         :param Boolean network_monitor: outputs each network transaction and device information
-        :returns: Returns list of programs. One for each trial
+        :return: Returns list of programs. One for each trial
         '''
         self.using_notebook = check_notebook()
 
