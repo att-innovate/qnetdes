@@ -205,7 +205,7 @@ experiment with the master and agent clocks.
             for q in self.qubits:
                 p += H(q)
                 p += X(q)
-                self. qsend('Bob', [q])
+                self.qsend('Bob', [q])
 
     class Bob(Agent):
         def run(self):
